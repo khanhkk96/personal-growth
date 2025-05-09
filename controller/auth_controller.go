@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"personal-growth/data/request"
 	"personal-growth/data/response"
 	"personal-growth/helpers"
@@ -158,7 +157,6 @@ func (controller *AuthController) ChangePassword(ctx *fiber.Ctx) error {
 	err := ctx.BodyParser(&request)
 	helpers.ErrorPanic(err)
 
-	fmt.Println(user)
 	rerr := controller.service.ChangePassword(request, user)
 	if rerr != nil {
 		return ctx.Status(rerr.Code).JSON(rerr.Message)
@@ -303,6 +301,33 @@ func (controller *AuthController) SetNewPassword(ctx *fiber.Ctx) error {
 		Code:    200,
 		Status:  "Ok",
 		Message: "Set new password successfully",
+		Data:    nil,
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(webResponse)
+}
+
+// @Summary      Upload avatar
+// @Description  Upload user avatar
+// @Tags         Auth
+// @Security 	 BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param 		 file formData file true "File to upload"
+// @Router       /api/auth/upload-avatar [POST]
+func (controller *AuthController) UploadAvatar(ctx *fiber.Ctx) error {
+	file := ctx.Locals("file").(string)
+	user := ctx.Locals("user").(*model.User)
+
+	rerr := controller.service.UploadAvatar(file, user)
+	if rerr != nil {
+		return ctx.Status(rerr.Code).JSON(rerr.Message)
+	}
+
+	webResponse := response.Response{
+		Code:    200,
+		Status:  "Ok",
+		Message: "Upload avatar successfully",
 		Data:    nil,
 	}
 

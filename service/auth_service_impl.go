@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"personal-growth/common/app_strings"
+	"personal-growth/common/constants"
 	"personal-growth/config"
 	"personal-growth/data/request"
 	"personal-growth/data/response"
@@ -110,7 +110,7 @@ func (n *AuthServiceImpl) Register(data request.RegisterRequest) (*model.User, *
 	config, _ := config.LoadConfig(".")
 	content := helpers.RegistrationEmailData{
 		Name:     user.FullName,
-		AppName:  app_strings.APP_NAME,
+		AppName:  constants.APP_NAME,
 		LoginURL: fmt.Sprintf("%s/login", config.ClientAddress),
 		Otp:      otp,
 	}
@@ -154,7 +154,7 @@ func (n *AuthServiceImpl) ForgotPassword(email string) *fiber.Error {
 	//generate OTP
 	otp, _ := utils.GenerateNumberOTP(6)
 	content := helpers.RegistrationEmailData{
-		AppName: app_strings.APP_NAME,
+		AppName: constants.APP_NAME,
 		Otp:     otp,
 	}
 
@@ -301,6 +301,20 @@ func (n *AuthServiceImpl) SetNewPassword(data request.SetNewPasswordRequest) *fi
 	user.Password = string(newHash)
 	if uerr := n.UserRepository.Update(user); uerr != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Change password unsuccessfully")
+	}
+
+	return nil
+}
+
+func (n *AuthServiceImpl) UploadAvatar(file string, user *model.User) *fiber.Error {
+	// Validate input data
+	if file == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid avatar")
+	}
+
+	user.Avatar = sql.NullString{String: file, Valid: true}
+	if uerr := n.UserRepository.Update(user); uerr != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Upload avatar unsuccessfully")
 	}
 
 	return nil

@@ -54,6 +54,7 @@ func main() {
 
 	app.Use(logger.New())
 	app.Use(recover.New())
+	app.Static("/uploads", "./uploads")
 
 	app.Mount("/api", authRoute)
 

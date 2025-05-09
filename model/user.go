@@ -20,7 +20,8 @@ type User struct {
 	OtpExpiredAt sql.NullTime   `gorm:"type:time"`
 	OtpCounter   int            `gorm:"type:int; default: 0"`
 	IsActive     bool           `gorm:"type:boolean; default:false"`
-	Type         string         `gorm:"type:string; default:'user'"` // user, admin, superadmin
+	Type         string         `gorm:"type:string; default:'user'"` // user, admin
+	Avatar       sql.NullString `gorm:"type:string"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {

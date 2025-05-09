@@ -1,3 +1,3 @@
-package app_strings
+package constants
 
 const APP_NAME = "Personal Growth"
