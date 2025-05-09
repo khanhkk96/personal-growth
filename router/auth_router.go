@@ -16,9 +16,10 @@ func NewAuthRouter(controller *controller.AuthController, db *gorm.DB) *fiber.Ap
 		router.Post("/login", controller.Login)         //done
 		router.Get("/refresh", controller.RefreshToken) //done
 		router.Post("/forgot-password", controller.ForgotPassword)
-		router.Post("/resend-otp", controller.ResendOTP)         //done
-		router.Post("/verify-otp", controller.VerifyOTP)         //done
-		router.Post("/verify-account", controller.VerifyAccount) //done
+		router.Post("/resend-otp", controller.ResendOTP)            //done
+		router.Post("/verify-otp", controller.VerifyOTP)            //done
+		router.Post("/verify-account", controller.VerifyAccount)    //done
+		router.Post("/set-new-password", controller.SetNewPassword) //done
 	})
 
 	authRouter := appRouter.Group("/", middlewares.Authenticate(), middlewares.GetProfileHandler(db))

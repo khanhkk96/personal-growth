@@ -23,6 +23,7 @@ type Config struct {
 	//email
 	EmailAddress  string `mapstructure:"EMAIL_ADDRESS"`
 	EmailPassword string `mapstructure:"EMAIL_PASSWORD"`
+	ClientAddress string `mapstructure:"CLIENT_ADDRESS"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

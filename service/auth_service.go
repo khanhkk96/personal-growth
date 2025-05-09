@@ -17,4 +17,5 @@ type AuthService interface {
 	VerifyAccount(data request.VerifyOTPRequest) *fiber.Error
 	ChangePassword(data request.ChangePasswordRequest, user *model.User) *fiber.Error
 	ResendOtp(email string) *fiber.Error
+	SetNewPassword(data request.SetNewPasswordRequest) *fiber.Error
 }

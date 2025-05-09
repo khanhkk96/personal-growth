@@ -3,6 +3,8 @@ package service
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"personal-growth/common/app_strings"
 	"personal-growth/config"
 	"personal-growth/data/request"
 	"personal-growth/data/response"
@@ -99,16 +101,27 @@ func (n *AuthServiceImpl) Register(data request.RegisterRequest) (*model.User, *
 	user.Otp = sql.NullString{String: otp, Valid: true}
 	user.OtpExpiredAt = sql.NullTime{Time: time.Now().Add(5 * time.Minute), Valid: true}
 	user.OtpCounter++
-	// isActive := true
-	// user.IsActive = &isActive
 
 	cerr := n.UserRepository.Create(user)
 	if cerr != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Register your account unsuccessfully")
 	}
 
+	config, _ := config.LoadConfig(".")
+	content := helpers.RegistrationEmailData{
+		Name:     user.FullName,
+		AppName:  app_strings.APP_NAME,
+		LoginURL: fmt.Sprintf("%s/login", config.ClientAddress),
+		Otp:      otp,
+	}
+
+	message, err := helpers.RenderEmailTemplate("templates/welcome_email.html", content)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	//send verification email
-	serr := helpers.SendEmail(data.Email, "Verify your account", fmt.Sprintf("Welcome to KK Project <br /> You have created new account succeessfully <br /> Please verify your one by using bellow OTP: <br /> <h2>%s</h2>", otp))
+	serr := helpers.SendEmail(data.Email, "Verify your account", message)
 	if serr != nil {
 		panic(serr)
 	}
@@ -129,13 +142,35 @@ func (n *AuthServiceImpl) ForgotPassword(email string) *fiber.Error {
 		return fiber.NewError(fiber.StatusNotFound, "User not found")
 	}
 
+	if user.OtpCounter >= 5 {
+		if time.Now().Before(user.OtpExpiredAt.Time.Add(3 * time.Minute)) {
+			return fiber.NewError(fiber.StatusBadRequest, "You have reached the maximum number of OTP requests. Please try again later.")
+		}
+
+		// reset OTP counter
+		user.OtpCounter = 0
+	}
+
 	//generate OTP
 	otp, _ := utils.GenerateNumberOTP(6)
+	content := helpers.RegistrationEmailData{
+		AppName: app_strings.APP_NAME,
+		Otp:     otp,
+	}
+
+	message, err := helpers.RenderEmailTemplate("templates/forgot_password_email.html", content)
+	if err != nil {
+		log.Fatal(err)
+	}
 	//send verification email
-	serr := helpers.SendEmail(email, "Email verification", fmt.Sprintf("Your OTP: <br /> <h2>%s</h2>", otp))
+	serr := helpers.SendEmail(email, "Forgot password", message)
 	if serr != nil {
 		panic(serr)
 	}
+
+	user.Otp = sql.NullString{String: otp, Valid: true}
+	user.OtpExpiredAt = sql.NullTime{Time: time.Now().Add(5 * time.Minute), Valid: true}
+	user.OtpCounter++
 
 	n.UserRepository.Update(user)
 	return nil
@@ -154,7 +189,7 @@ func (n *AuthServiceImpl) VerifyAccount(data request.VerifyOTPRequest) *fiber.Er
 	user.Otp = sql.NullString{Valid: false}
 	user.OtpExpiredAt = sql.NullTime{Valid: false}
 	user.OtpCounter = 0
-	user.IsActive = true
+	user.IsActive = true //activate account
 	n.UserRepository.Update(user)
 
 	return nil
@@ -168,7 +203,6 @@ func (n *AuthServiceImpl) VerifyOtp(data request.VerifyOTPRequest) *fiber.Error 
 
 	// Check if user exists in the database
 	user, err := n.UserRepository.FindOneBy("email = ?", data.Email)
-	fmt.Println(user)
 	if err != nil || user == nil {
 		return fiber.NewError(fiber.StatusNotFound, "User not found")
 	}
@@ -182,13 +216,6 @@ func (n *AuthServiceImpl) VerifyOtp(data request.VerifyOTPRequest) *fiber.Error 
 	if time.Now().After(user.OtpExpiredAt.Time) {
 		return fiber.NewError(fiber.StatusBadRequest, "OTP is expired")
 	}
-
-	// clear OTP and expired time
-	// user.Otp = ""
-	// user.OtpExpiredAt = time.Time{}
-	// isActive := true
-	// user.IsActive = &isActive
-	// n.UserRepository.Update(user)
 
 	return nil
 }
@@ -208,21 +235,21 @@ func (n *AuthServiceImpl) ResendOtp(email string) *fiber.Error {
 	//generate OTP
 	otp, _ := utils.GenerateNumberOTP(6)
 
-	user.Otp = sql.NullString{String: otp, Valid: true}
-	user.OtpExpiredAt = sql.NullTime{Time: time.Now().Add(5 * time.Minute), Valid: true}
-	user.OtpCounter++
-
 	if user.OtpCounter >= 5 {
-		if time.Now().Before(user.OtpExpiredAt.Time.Add(30 * time.Minute)) {
+		if time.Now().Before(user.OtpExpiredAt.Time.Add(3 * time.Minute)) {
 			return fiber.NewError(fiber.StatusBadRequest, "You have reached the maximum number of OTP requests. Please try again later.")
 		}
 
 		// reset OTP counter
-		user.OtpCounter = 1
+		user.OtpCounter = 0
 	}
 
+	user.Otp = sql.NullString{String: otp, Valid: true}
+	user.OtpExpiredAt = sql.NullTime{Time: time.Now().Add(5 * time.Minute), Valid: true}
+	user.OtpCounter++
+
 	//send verification email
-	serr := helpers.SendEmail(email, "Email verification", fmt.Sprintf("Your OTP: <br /> <h2>%s</h2>", otp))
+	serr := helpers.SendEmail(email, "Email verification", fmt.Sprintf("<p>Your OTP: </p><h2>%s</h2>", otp))
 	if serr != nil {
 		panic(serr)
 	}
@@ -237,9 +264,37 @@ func (n *AuthServiceImpl) ChangePassword(data request.ChangePasswordRequest, use
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid data")
 	}
 
-	if !user.CompareHashAndPassword(data.NewPassword) {
+	if !user.CompareHashAndPassword(data.OldPassword) {
 		return fiber.NewError(fiber.StatusBadRequest, "Wrong password")
 	}
+
+	newHash, gerr := bcrypt.GenerateFromPassword([]byte(data.NewPassword), bcrypt.DefaultCost)
+	helpers.ErrorPanic(gerr)
+	user.Password = string(newHash)
+	if uerr := n.UserRepository.Update(user); uerr != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Change password unsuccessfully")
+	}
+
+	return nil
+}
+
+func (n *AuthServiceImpl) SetNewPassword(data request.SetNewPasswordRequest) *fiber.Error {
+	//validate input data
+	if err := n.validate.Struct(data); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid data")
+	}
+
+	verr := n.VerifyOtp(request.VerifyOTPRequest{Otp: data.Otp, Email: data.Email})
+	if verr != nil {
+		return verr
+	}
+
+	user, _ := n.UserRepository.FindOneBy("email = ?", data.Email)
+
+	// clear OTP and expired time
+	user.Otp = sql.NullString{Valid: false}
+	user.OtpExpiredAt = sql.NullTime{Valid: false}
+	user.OtpCounter = 0
 
 	newHash, gerr := bcrypt.GenerateFromPassword([]byte(data.NewPassword), bcrypt.DefaultCost)
 	helpers.ErrorPanic(gerr)

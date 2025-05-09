@@ -54,7 +54,7 @@ func (controller *AuthController) Login(ctx *fiber.Ctx) error {
 	webResponse := response.Response{
 		Code:    200,
 		Status:  "Ok",
-		Message: "Login successfully!",
+		Message: "Login successfully",
 		Data:    tokens,
 	}
 	return ctx.Status(fiber.StatusCreated).JSON(webResponse)
@@ -84,7 +84,7 @@ func (controller *AuthController) RefreshToken(ctx *fiber.Ctx) error {
 	webResponse := response.Response{
 		Code:    200,
 		Status:  "Ok",
-		Message: "Get new acceess token successfully!",
+		Message: "Get new acceess token successfully",
 		Data:    tokens,
 	}
 	return ctx.Status(fiber.StatusCreated).JSON(webResponse)
@@ -136,7 +136,7 @@ func (controller *AuthController) Me(ctx *fiber.Ctx) error {
 	webResponse := response.Response{
 		Code:    200,
 		Status:  "Ok",
-		Message: "Get account data successfully!",
+		Message: "Get account data successfully",
 		Data:    dto,
 	}
 
@@ -167,7 +167,7 @@ func (controller *AuthController) ChangePassword(ctx *fiber.Ctx) error {
 	webResponse := response.Response{
 		Code:    200,
 		Status:  "Ok",
-		Message: "Change password successfully!",
+		Message: "Change password successfully",
 		Data:    nil,
 	}
 
@@ -194,7 +194,7 @@ func (controller *AuthController) ForgotPassword(ctx *fiber.Ctx) error {
 	webResponse := response.Response{
 		Code:    200,
 		Status:  "Ok",
-		Message: "Sent an otp to your email!",
+		Message: "Sent an otp to your email",
 		Data:    nil,
 	}
 
@@ -221,7 +221,7 @@ func (controller *AuthController) VerifyOTP(ctx *fiber.Ctx) error {
 	webResponse := response.Response{
 		Code:    200,
 		Status:  "Ok",
-		Message: "Verify your OTP successfully!",
+		Message: "Verify your OTP successfully",
 		Data:    nil,
 	}
 
@@ -248,7 +248,7 @@ func (controller *AuthController) VerifyAccount(ctx *fiber.Ctx) error {
 	webResponse := response.Response{
 		Code:    200,
 		Status:  "Ok",
-		Message: "Verify your account successfully!",
+		Message: "Verify your account successfully",
 		Data:    nil,
 	}
 
@@ -275,7 +275,34 @@ func (controller *AuthController) ResendOTP(ctx *fiber.Ctx) error {
 	webResponse := response.Response{
 		Code:    200,
 		Status:  "Ok",
-		Message: "Resend OTP to your email successfully!",
+		Message: "Resend OTP to your email successfully",
+		Data:    nil,
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(webResponse)
+}
+
+// @Summary      Set new password
+// @Description  Set new password
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        password body request.SetNewPasswordRequest true "Password info"
+// @Router       /api/auth/set-new-password [POST]
+func (controller *AuthController) SetNewPassword(ctx *fiber.Ctx) error {
+	request := request.SetNewPasswordRequest{}
+	err := ctx.BodyParser(&request)
+	helpers.ErrorPanic(err)
+
+	rerr := controller.service.SetNewPassword(request)
+	if rerr != nil {
+		return ctx.Status(rerr.Code).JSON(rerr.Message)
+	}
+
+	webResponse := response.Response{
+		Code:    200,
+		Status:  "Ok",
+		Message: "Set new password successfully",
 		Data:    nil,
 	}
 

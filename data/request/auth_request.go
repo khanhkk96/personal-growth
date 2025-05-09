@@ -21,6 +21,7 @@ type ChangePasswordRequest struct {
 type SetNewPasswordRequest struct {
 	Email       string `validate:"required,email" json:"email"`
 	NewPassword string `validate:"required,min=6,max=20" json:"new_password"`
+	Otp         string `validate:"required,min=6,max=8" json:"otp"`
 }
 
 type ForgotPasswordRequest struct {

@@ -1,10 +1,31 @@
 package helpers
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"net/smtp"
 	"personal-growth/config"
 )
+
+type RegistrationEmailData struct {
+	Name     string
+	AppName  string
+	LoginURL string
+	Otp      string
+}
+
+func RenderEmailTemplate(filename string, data RegistrationEmailData) (string, error) {
+	tmpl, err := template.ParseFiles(filename)
+	if err != nil {
+		return "", err
+	}
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, data); err != nil {
+		return "", err
+	}
+	return body.String(), nil
+}
 
 func SendEmail(to string, subject string, body string) error {
 	config, _ := config.LoadConfig(".")
