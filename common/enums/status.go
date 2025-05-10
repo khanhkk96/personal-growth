@@ -24,15 +24,15 @@ func IsValidScheduleStatus(status ScheduleStatus) bool {
 type ProjectStatus string
 
 const (
-	PLANNING     ProjectStatus = "planning"
-	IMPLEMENTING ProjectStatus = "implementing"
-	POSTPONE     ProjectStatus = "postpone"
-	FINISHED     ProjectStatus = "finished"
+	PLANNING ProjectStatus = "planning"
+	ONGOING  ProjectStatus = "ongoing"
+	POSTPONE ProjectStatus = "postpone"
+	FINISHED ProjectStatus = "finished"
 )
 
 func IsValidProjectStatus(status ProjectStatus) bool {
 	switch status {
-	case PLANNING, IMPLEMENTING, POSTPONE, FINISHED:
+	case PLANNING, ONGOING, POSTPONE, FINISHED:
 		return true
 	default:
 		return false

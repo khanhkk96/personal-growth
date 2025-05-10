@@ -5,7 +5,7 @@ import (
 	"personal-growth/data/responses"
 	"personal-growth/helpers"
 	"personal-growth/models"
-	service "personal-growth/services"
+	services "personal-growth/services"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,10 +13,10 @@ import (
 )
 
 type AuthController struct {
-	service service.AuthService
+	service services.AuthService
 }
 
-func NewAuthController(service service.AuthService) *AuthController {
+func NewAuthController(service services.AuthService) *AuthController {
 	return &AuthController{
 		service: service,
 	}

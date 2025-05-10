@@ -88,7 +88,7 @@ func (n *AuthServiceImpl) Register(data requests.RegisterRequest) (*models.User,
 	}
 
 	// Check if user exists in the database
-	user, _ := n.repository.FindOneBy("Username = ?", data.Username)
+	user, _ := n.repository.FindOneBy("Username = ? OR Email = ? OR Phone = ?", data.Username, data.Email, data.Phone)
 	if user != nil {
 		return nil, fiber.NewError(fiber.StatusConflict, "User exists")
 	}

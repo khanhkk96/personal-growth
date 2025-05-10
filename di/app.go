@@ -11,4 +11,7 @@ func MountAppRouters(app *fiber.App, db *gorm.DB) {
 	//auth
 	authModule := InitAuth(db)
 	app.Mount("/api", authModule)
+	//project
+	projectModule := InitProject(db)
+	app.Mount("/api", projectModule)
 }

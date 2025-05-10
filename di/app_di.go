@@ -16,7 +16,7 @@ import (
 	"personal-growth/services"
 )
 
-// Injectors from auth.go:
+// Injectors from auth_di.go:
 
 // InitAuth initializes the Auth module using Wire.
 func InitAuth(db *gorm.DB) *fiber.App {
@@ -28,7 +28,19 @@ func InitAuth(db *gorm.DB) *fiber.App {
 	return app
 }
 
-// auth.go:
+// Injectors from project_di.go:
+
+// InitProject initializes the Project module using Wire.
+func InitProject(db *gorm.DB) *fiber.App {
+	projectRepository := ProvideProjectRepository(db)
+	validate := ProvideValidator()
+	projectService := ProvideProjectService(projectRepository, validate)
+	projectController := ProvideProjectController(projectService)
+	app := ProvideProjectRouter(projectController, db)
+	return app
+}
+
+// auth_di.go:
 
 // ProvideValidator creates a new validator instance.
 func ProvideValidator() *validator.Validate {
@@ -53,4 +65,26 @@ func ProvideAuthController(service services.AuthService) *controllers.AuthContro
 // ProvideAuthRouter creates a new Auth router.
 func ProvideAuthRouter(controller *controllers.AuthController, db *gorm.DB) *fiber.App {
 	return routers.NewAuthRouter(controller, db)
+}
+
+// project_di.go:
+
+// ProvideProjectRepository creates a new Project repository.
+func ProvideProjectRepository(db *gorm.DB) repositories.ProjectRepository {
+	return repositories.NewProjectRepository(db)
+}
+
+// ProvideProjectService creates a new Project service.
+func ProvideProjectService(repo repositories.ProjectRepository, validate *validator.Validate) services.ProjectService {
+	return services.NewProjectServiceImpl(repo, validate)
+}
+
+// ProvideProjectController creates a new Project controller.
+func ProvideProjectController(service services.ProjectService) *controllers.ProjectController {
+	return controllers.NewProjectController(service)
+}
+
+// ProvideProjectRouter creates a new Project router.
+func ProvideProjectRouter(controller *controllers.ProjectController, db *gorm.DB) *fiber.App {
+	return routers.NewProjectRouter(controller, db)
 }
