@@ -10,9 +10,9 @@ import (
 )
 
 type UploadFileOptions struct {
-	AAllowedTypes map[string]bool
-	FileSize      int64
-	BasePath      string
+	AllowedTypes map[string]bool
+	FileSize     int64
+	BasePath     string
 }
 
 func Uploadfile(options UploadFileOptions) fiber.Handler {
@@ -29,24 +29,24 @@ func Uploadfile(options UploadFileOptions) fiber.Handler {
 
 		// limit file size to 5MB
 		if file.Size > options.FileSize*1024*1024 {
-			return c.Status(400).SendString(fmt.Sprintf("File quá lớn, tối đa %dMB", options.FileSize))
+			return c.Status(400).SendString(fmt.Sprintf("File size is too big, Maximum is %dMB", options.FileSize))
 		}
 
 		//check file typetype
 		f, err := file.Open()
 		if err != nil {
-			return c.Status(500).SendString("Lỗi đọc file")
+			return c.Status(500).SendString("Can not open file")
 		}
 		defer f.Close()
 		buf := make([]byte, 512)
 		_, err = f.Read(buf)
 		if err != nil {
-			return c.Status(500).SendString("Lỗi đọc dữ liệu")
+			return c.Status(500).SendString("Can not read file")
 		}
 
 		mimeType := http.DetectContentType(buf)
-		if !options.AAllowedTypes[mimeType] {
-			return c.Status(400).SendString("Sai định dạng file")
+		if !options.AllowedTypes[mimeType] {
+			return c.Status(400).SendString("Invalid file type")
 		}
 
 		//edit file name

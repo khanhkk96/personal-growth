@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	configs "personal-growth/configs"
+	injections "personal-growth/di"
 	"personal-growth/docs"
-	"personal-growth/injections"
 	"personal-growth/middlewares"
 	"personal-growth/models"
 
@@ -46,7 +46,7 @@ func main() {
 	app.Use(recover.New())
 	app.Static("/uploads", "./uploads")
 
-	injections.InitAppRouters(app, db)
+	injections.MountAppRouters(app, db)
 
 	// config swagger
 	docs.SwaggerInfo.Title = "Swagger PersonalGrowth API"

@@ -9,6 +9,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
+	github.com/google/wire v0.6.0
 	github.com/jinzhu/copier v0.4.0
 	github.com/spf13/viper v1.15.0
 	github.com/swaggo/fiber-swagger v1.3.0

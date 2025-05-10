@@ -30,8 +30,8 @@ func NewAuthRouter(controller *controllers.AuthController, db *gorm.DB) *fiber.A
 		router.Get("/me", controller.Me)
 		router.Post("/change-password", controller.ChangePassword)
 		router.Post("/upload-avatar", middlewares.Uploadfile(middlewares.UploadFileOptions{
-			AAllowedTypes: constants.ImageFileTypes,
-			BasePath:      "avatar",
+			AllowedTypes: constants.ImageFileTypes,
+			BasePath:     "avatar",
 		}), controller.UploadAvatar)
 	})
 

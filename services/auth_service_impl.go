@@ -10,7 +10,7 @@ import (
 	"personal-growth/data/responses"
 	"personal-growth/helpers"
 	"personal-growth/models"
-	"personal-growth/repository"
+	"personal-growth/repositories"
 	"personal-growth/utils"
 	"time"
 
@@ -21,14 +21,14 @@ import (
 )
 
 type AuthServiceImpl struct {
-	UserRepository repository.BaseRepository[models.User]
-	validate       *validator.Validate
+	repository repositories.UserRepository
+	validate   *validator.Validate
 }
 
-func NewAuthServiceImpl(repository repository.BaseRepository[models.User], validate *validator.Validate) AuthService {
+func NewAuthServiceImpl(repository repositories.UserRepository, validate *validator.Validate) AuthService {
 	return &AuthServiceImpl{
-		UserRepository: repository,
-		validate:       validate,
+		repository: repository,
+		validate:   validate,
 	}
 }
 
@@ -39,16 +39,16 @@ func (n *AuthServiceImpl) Login(data requests.LoginRequest) (*responses.LoginRes
 	}
 
 	// Check if user exists in the database
-	user, err := n.UserRepository.FindOneBy("username = ? AND is_active = ?", data.Username, true)
+	user, err := n.repository.FindOneBy("username = ? AND is_active = ?", data.Username, true)
 	if err != nil || user == nil {
 		log.Printf("User %s not found", data.Username)
-		return nil, fiber.NewError(fiber.StatusNotFound, "Either username or password is wrong")
+		return nil, fiber.NewError(fiber.StatusNotFound, "Either username or password is incorrect")
 	}
 
 	// Check if password is correct
 	if !user.CompareHashAndPassword(data.Password) {
-		log.Println("Password is wrong - username:", data.Username)
-		return nil, fiber.NewError(fiber.StatusBadRequest, "Either username or password is wrong")
+		log.Println("Password is incorrect - username:", data.Username)
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Either username or password is incorrect")
 	}
 
 	// generate access token
@@ -88,7 +88,7 @@ func (n *AuthServiceImpl) Register(data requests.RegisterRequest) (*models.User,
 	}
 
 	// Check if user exists in the database
-	user, _ := n.UserRepository.FindOneBy("Username = ?", data.Username)
+	user, _ := n.repository.FindOneBy("Username = ?", data.Username)
 	if user != nil {
 		return nil, fiber.NewError(fiber.StatusConflict, "User exists")
 	}
@@ -104,7 +104,7 @@ func (n *AuthServiceImpl) Register(data requests.RegisterRequest) (*models.User,
 	user.OtpExpiredAt = sql.NullTime{Time: time.Now().Add(5 * time.Minute), Valid: true}
 	user.OtpCounter++
 
-	cerr := n.UserRepository.Create(user)
+	cerr := n.repository.Create(user)
 	if cerr != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Register your account unsuccessfully")
 	}
@@ -139,7 +139,7 @@ func (n *AuthServiceImpl) ForgotPassword(email string) *fiber.Error {
 	}
 
 	// Check if user exists in the database
-	user, err := n.UserRepository.FindOneBy("email = ?", email)
+	user, err := n.repository.FindByEmail(email)
 	if err != nil || user == nil {
 		return fiber.NewError(fiber.StatusNotFound, "User not found")
 	}
@@ -174,7 +174,7 @@ func (n *AuthServiceImpl) ForgotPassword(email string) *fiber.Error {
 	user.OtpExpiredAt = sql.NullTime{Time: time.Now().Add(5 * time.Minute), Valid: true}
 	user.OtpCounter++
 
-	n.UserRepository.Update(user)
+	n.repository.Update(user)
 	return nil
 }
 
@@ -185,14 +185,14 @@ func (n *AuthServiceImpl) VerifyAccount(data requests.VerifyOTPRequest) *fiber.E
 		return err
 	}
 
-	user, _ := n.UserRepository.FindOneBy("email = ?", data.Email)
+	user, _ := n.repository.FindByEmail(data.Email)
 
 	// clear OTP and expired time
 	user.Otp = sql.NullString{Valid: false}
 	user.OtpExpiredAt = sql.NullTime{Valid: false}
 	user.OtpCounter = 0
 	user.IsActive = true //activate account
-	n.UserRepository.Update(user)
+	n.repository.Update(user)
 
 	return nil
 }
@@ -204,7 +204,7 @@ func (n *AuthServiceImpl) VerifyOtp(data requests.VerifyOTPRequest) *fiber.Error
 	}
 
 	// Check if user exists in the database
-	user, err := n.UserRepository.FindOneBy("email = ?", data.Email)
+	user, err := n.repository.FindByEmail(data.Email)
 	if err != nil || user == nil {
 		return fiber.NewError(fiber.StatusNotFound, "User not found")
 	}
@@ -229,7 +229,7 @@ func (n *AuthServiceImpl) ResendOtp(email string) *fiber.Error {
 	}
 
 	// Check if user exists in the database
-	user, err := n.UserRepository.FindOneBy("email = ? AND otp IS NOT NULL", email)
+	user, err := n.repository.FindOneBy("email = ? AND otp IS NOT NULL", email)
 	if err != nil || user == nil {
 		return fiber.NewError(fiber.StatusNotFound, "User not found")
 	}
@@ -256,7 +256,7 @@ func (n *AuthServiceImpl) ResendOtp(email string) *fiber.Error {
 		panic(serr)
 	}
 
-	n.UserRepository.Update(user)
+	n.repository.Update(user)
 	return nil
 }
 
@@ -267,13 +267,13 @@ func (n *AuthServiceImpl) ChangePassword(data requests.ChangePasswordRequest, us
 	}
 
 	if !user.CompareHashAndPassword(data.OldPassword) {
-		return fiber.NewError(fiber.StatusBadRequest, "Wrong password")
+		return fiber.NewError(fiber.StatusBadRequest, "Incorrect password")
 	}
 
 	newHash, gerr := bcrypt.GenerateFromPassword([]byte(data.NewPassword), bcrypt.DefaultCost)
 	helpers.ErrorPanic(gerr)
 	user.Password = string(newHash)
-	if uerr := n.UserRepository.Update(user); uerr != nil {
+	if uerr := n.repository.Update(user); uerr != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Change password unsuccessfully")
 	}
 
@@ -291,7 +291,7 @@ func (n *AuthServiceImpl) SetNewPassword(data requests.SetNewPasswordRequest) *f
 		return verr
 	}
 
-	user, _ := n.UserRepository.FindOneBy("email = ?", data.Email)
+	user, _ := n.repository.FindByEmail(data.Email)
 
 	// clear OTP and expired time
 	user.Otp = sql.NullString{Valid: false}
@@ -301,7 +301,7 @@ func (n *AuthServiceImpl) SetNewPassword(data requests.SetNewPasswordRequest) *f
 	newHash, gerr := bcrypt.GenerateFromPassword([]byte(data.NewPassword), bcrypt.DefaultCost)
 	helpers.ErrorPanic(gerr)
 	user.Password = string(newHash)
-	if uerr := n.UserRepository.Update(user); uerr != nil {
+	if uerr := n.repository.Update(user); uerr != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Change password unsuccessfully")
 	}
 
@@ -315,7 +315,7 @@ func (n *AuthServiceImpl) UploadAvatar(file string, user *models.User) *fiber.Er
 	}
 
 	user.Avatar = sql.NullString{String: file, Valid: true}
-	if uerr := n.UserRepository.Update(user); uerr != nil {
+	if uerr := n.repository.Update(user); uerr != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Upload avatar unsuccessfully")
 	}
 
