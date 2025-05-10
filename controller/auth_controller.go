@@ -311,8 +311,8 @@ func (controller *AuthController) SetNewPassword(ctx *fiber.Ctx) error {
 // @Description  Upload user avatar
 // @Tags         Auth
 // @Security 	 BearerAuth
-// @Accept       json
 // @Produce      json
+// @Accept 		 multipart/form-data
 // @Param 		 file formData file true "File to upload"
 // @Router       /api/auth/upload-avatar [POST]
 func (controller *AuthController) UploadAvatar(ctx *fiber.Ctx) error {

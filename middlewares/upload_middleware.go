@@ -12,6 +12,7 @@ import (
 type UploadFileOptions struct {
 	AAllowedTypes map[string]bool
 	FileSize      int64
+	BasePath      string
 }
 
 func Uploadfile(options UploadFileOptions) fiber.Handler {
@@ -54,7 +55,7 @@ func Uploadfile(options UploadFileOptions) fiber.Handler {
 
 		// Lưu file vào thư mục uploads/
 		utils.EnsureDir("./uploads/avatar")
-		filepath := fmt.Sprintf("./uploads/avatar/%s", newFileName)
+		filepath := fmt.Sprintf("./uploads/%s/%s", options.BasePath, newFileName)
 		err = c.SaveFile(file, filepath)
 		if err != nil {
 			return err

@@ -50,6 +50,7 @@ func main() {
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middlewares.ErrorHandler,
+		BodyLimit:    20 * 1024 * 1024, // limit 20 MB
 	})
 
 	app.Use(logger.New())
