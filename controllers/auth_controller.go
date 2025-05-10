@@ -1,11 +1,11 @@
-package controller
+package controllers
 
 import (
-	"personal-growth/data/request"
-	"personal-growth/data/response"
+	"personal-growth/data/requests"
+	"personal-growth/data/responses"
 	"personal-growth/helpers"
-	"personal-growth/model"
-	"personal-growth/service"
+	"personal-growth/models"
+	service "personal-growth/services"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,11 +27,11 @@ func NewAuthController(service service.AuthService) *AuthController {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        user body request.LoginRequest true "Account info"
-// @Success      200 {object} response.LoginResponse
+// @Param        user body requests.LoginRequest true "Account info"
+// @Success      200 {object} responses.LoginResponse
 // @Router       /api/auth/login [POST]
 func (controller *AuthController) Login(ctx *fiber.Ctx) error {
-	loginRequest := request.LoginRequest{}
+	loginRequest := requests.LoginRequest{}
 	err := ctx.BodyParser(&loginRequest)
 	helpers.ErrorPanic(err)
 
@@ -50,7 +50,7 @@ func (controller *AuthController) Login(ctx *fiber.Ctx) error {
 		Expires:  time.Now().Add(7 * 24 * time.Hour),
 	})
 
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Login successfully",
@@ -80,7 +80,7 @@ func (controller *AuthController) RefreshToken(ctx *fiber.Ctx) error {
 		return ctx.Status(lerr.Code).JSON(lerr.Message)
 	}
 
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Get new acceess token successfully",
@@ -94,11 +94,11 @@ func (controller *AuthController) RefreshToken(ctx *fiber.Ctx) error {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        user body request.RegisterRequest false "Registration info"
-// @Success      200 {object} response.UserResponse
+// @Param        user body requests.RegisterRequest false "Registration info"
+// @Success      200 {object} responses.UserResponse
 // @Router       /api/auth/register [POST]
 func (controller *AuthController) Register(ctx *fiber.Ctx) error {
-	request := request.RegisterRequest{}
+	request := requests.RegisterRequest{}
 	err := ctx.BodyParser(&request)
 	helpers.ErrorPanic(err)
 
@@ -107,9 +107,9 @@ func (controller *AuthController) Register(ctx *fiber.Ctx) error {
 		return ctx.Status(rerr.Code).JSON(rerr.Message)
 	}
 
-	var dto response.UserResponse
+	var dto responses.UserResponse
 	copier.Copy(&dto, user)
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "You have registered a new account. Please check your mailbox to verify.",
@@ -125,14 +125,14 @@ func (controller *AuthController) Register(ctx *fiber.Ctx) error {
 // @Security 	 BearerAuth
 // @Accept       json
 // @Produce      json
-// @Success      200 {object} response.UserResponse
+// @Success      200 {object} responses.UserResponse
 // @Router       /api/auth/me [GET]
 func (controller *AuthController) Me(ctx *fiber.Ctx) error {
 	user := ctx.Locals("user")
 
-	var dto response.UserResponse
+	var dto responses.UserResponse
 	copier.Copy(&dto, user)
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Get account data successfully",
@@ -148,12 +148,12 @@ func (controller *AuthController) Me(ctx *fiber.Ctx) error {
 // @Security 	 BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        password body request.ChangePasswordRequest true "Password info"
+// @Param        password body requests.ChangePasswordRequest true "Password info"
 // @Router       /api/auth/change-password [POST]
 func (controller *AuthController) ChangePassword(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*model.User)
+	user := ctx.Locals("user").(*models.User)
 
-	request := request.ChangePasswordRequest{}
+	request := requests.ChangePasswordRequest{}
 	err := ctx.BodyParser(&request)
 	helpers.ErrorPanic(err)
 
@@ -162,7 +162,7 @@ func (controller *AuthController) ChangePassword(ctx *fiber.Ctx) error {
 		return ctx.Status(rerr.Code).JSON(rerr.Message)
 	}
 
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Change password successfully",
@@ -177,10 +177,10 @@ func (controller *AuthController) ChangePassword(ctx *fiber.Ctx) error {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        password body request.ForgotPasswordRequest true "Password info"
+// @Param        password body requests.ForgotPasswordRequest true "Password info"
 // @Router       /api/auth/forgot-password [POST]
 func (controller *AuthController) ForgotPassword(ctx *fiber.Ctx) error {
-	request := request.ForgotPasswordRequest{}
+	request := requests.ForgotPasswordRequest{}
 	err := ctx.BodyParser(&request)
 	helpers.ErrorPanic(err)
 
@@ -189,7 +189,7 @@ func (controller *AuthController) ForgotPassword(ctx *fiber.Ctx) error {
 		return ctx.Status(rerr.Code).JSON(rerr.Message)
 	}
 
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Sent an otp to your email",
@@ -204,10 +204,10 @@ func (controller *AuthController) ForgotPassword(ctx *fiber.Ctx) error {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        otp body request.VerifyOTPRequest true "OTP info"
+// @Param        otp body requests.VerifyOTPRequest true "OTP info"
 // @Router       /api/auth/verify-otp [POST]
 func (controller *AuthController) VerifyOTP(ctx *fiber.Ctx) error {
-	request := request.VerifyOTPRequest{}
+	request := requests.VerifyOTPRequest{}
 	err := ctx.BodyParser(&request)
 	helpers.ErrorPanic(err)
 
@@ -216,7 +216,7 @@ func (controller *AuthController) VerifyOTP(ctx *fiber.Ctx) error {
 		return ctx.Status(rerr.Code).JSON(rerr.Message)
 	}
 
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Verify your OTP successfully",
@@ -231,10 +231,10 @@ func (controller *AuthController) VerifyOTP(ctx *fiber.Ctx) error {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        otp body request.VerifyOTPRequest true "OTP info"
+// @Param        otp body requests.VerifyOTPRequest true "OTP info"
 // @Router       /api/auth/verify-account [POST]
 func (controller *AuthController) VerifyAccount(ctx *fiber.Ctx) error {
-	request := request.VerifyOTPRequest{}
+	request := requests.VerifyOTPRequest{}
 	err := ctx.BodyParser(&request)
 	helpers.ErrorPanic(err)
 
@@ -243,7 +243,7 @@ func (controller *AuthController) VerifyAccount(ctx *fiber.Ctx) error {
 		return ctx.Status(rerr.Code).JSON(rerr.Message)
 	}
 
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Verify your account successfully",
@@ -258,10 +258,10 @@ func (controller *AuthController) VerifyAccount(ctx *fiber.Ctx) error {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        otp body request.ResendOTPRequest true "OTP info"
+// @Param        otp body requests.ResendOTPRequest true "OTP info"
 // @Router       /api/auth/resend-otp [POST]
 func (controller *AuthController) ResendOTP(ctx *fiber.Ctx) error {
-	request := request.ResendOTPRequest{}
+	request := requests.ResendOTPRequest{}
 	err := ctx.BodyParser(&request)
 	helpers.ErrorPanic(err)
 
@@ -270,7 +270,7 @@ func (controller *AuthController) ResendOTP(ctx *fiber.Ctx) error {
 		return ctx.Status(rerr.Code).JSON(rerr.Message)
 	}
 
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Resend OTP to your email successfully",
@@ -285,10 +285,10 @@ func (controller *AuthController) ResendOTP(ctx *fiber.Ctx) error {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        password body request.SetNewPasswordRequest true "Password info"
+// @Param        password body requests.SetNewPasswordRequest true "Password info"
 // @Router       /api/auth/set-new-password [POST]
 func (controller *AuthController) SetNewPassword(ctx *fiber.Ctx) error {
-	request := request.SetNewPasswordRequest{}
+	request := requests.SetNewPasswordRequest{}
 	err := ctx.BodyParser(&request)
 	helpers.ErrorPanic(err)
 
@@ -297,7 +297,7 @@ func (controller *AuthController) SetNewPassword(ctx *fiber.Ctx) error {
 		return ctx.Status(rerr.Code).JSON(rerr.Message)
 	}
 
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Set new password successfully",
@@ -317,14 +317,14 @@ func (controller *AuthController) SetNewPassword(ctx *fiber.Ctx) error {
 // @Router       /api/auth/upload-avatar [POST]
 func (controller *AuthController) UploadAvatar(ctx *fiber.Ctx) error {
 	file := ctx.Locals("file").(string)
-	user := ctx.Locals("user").(*model.User)
+	user := ctx.Locals("user").(*models.User)
 
 	rerr := controller.service.UploadAvatar(file, user)
 	if rerr != nil {
 		return ctx.Status(rerr.Code).JSON(rerr.Message)
 	}
 
-	webResponse := response.Response{
+	webResponse := responses.Response{
 		Code:    200,
 		Status:  "Ok",
 		Message: "Upload avatar successfully",

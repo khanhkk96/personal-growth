@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/smtp"
-	"personal-growth/config"
+	"personal-growth/configs"
 )
 
 type RegistrationEmailData struct {
@@ -28,7 +28,7 @@ func RenderEmailTemplate(filename string, data RegistrationEmailData) (string, e
 }
 
 func SendEmail(to string, subject string, body string) error {
-	config, _ := config.LoadConfig(".")
+	config, _ := configs.LoadConfig(".")
 	// SMTP server config.
 	smtpHost := "smtp.gmail.com" // Example: smtp.gmail.com
 	smtpPort := "587"            // Usually 587 for TLS

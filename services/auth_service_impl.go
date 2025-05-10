@@ -1,15 +1,15 @@
-package service
+package services
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
 	"personal-growth/common/constants"
-	"personal-growth/config"
-	"personal-growth/data/request"
-	"personal-growth/data/response"
+	"personal-growth/configs"
+	"personal-growth/data/requests"
+	"personal-growth/data/responses"
 	"personal-growth/helpers"
-	"personal-growth/model"
+	"personal-growth/models"
 	"personal-growth/repository"
 	"personal-growth/utils"
 	"time"
@@ -21,18 +21,18 @@ import (
 )
 
 type AuthServiceImpl struct {
-	UserRepository repository.BaseRepository[model.User]
+	UserRepository repository.BaseRepository[models.User]
 	validate       *validator.Validate
 }
 
-func NewAuthServiceImpl(repository repository.BaseRepository[model.User], validate *validator.Validate) AuthService {
+func NewAuthServiceImpl(repository repository.BaseRepository[models.User], validate *validator.Validate) AuthService {
 	return &AuthServiceImpl{
 		UserRepository: repository,
 		validate:       validate,
 	}
 }
 
-func (n *AuthServiceImpl) Login(data request.LoginRequest) (*response.LoginResponse, *fiber.Error) {
+func (n *AuthServiceImpl) Login(data requests.LoginRequest) (*responses.LoginResponse, *fiber.Error) {
 	// Validate username and password
 	if err := n.validate.Struct(data); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid data")
@@ -41,27 +41,29 @@ func (n *AuthServiceImpl) Login(data request.LoginRequest) (*response.LoginRespo
 	// Check if user exists in the database
 	user, err := n.UserRepository.FindOneBy("username = ? AND is_active = ?", data.Username, true)
 	if err != nil || user == nil {
-		return nil, fiber.NewError(fiber.StatusNotFound, "User not found")
+		log.Printf("User %s not found", data.Username)
+		return nil, fiber.NewError(fiber.StatusNotFound, "Either username or password is wrong")
 	}
 
 	// Check if password is correct
 	if !user.CompareHashAndPassword(data.Password) {
-		return nil, fiber.NewError(fiber.StatusBadRequest, "Password is wrong")
+		log.Println("Password is wrong - username:", data.Username)
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Either username or password is wrong")
 	}
 
 	// generate access token
-	config, _ := config.LoadConfig(".")
+	config, _ := configs.LoadConfig(".")
 	token, rf, err := utils.GenerateTokens(config.TokenExpiredIn, user.Id, config.TokenSecret, config.RefreshTokenSecret)
 	helpers.ErrorPanic(err)
 
-	return &response.LoginResponse{
+	return &responses.LoginResponse{
 		AccessToken:  token,
 		RefreshToken: rf,
 	}, nil
 }
 
 func (n *AuthServiceImpl) RefreshAccessToken(refreshToken string) (string, *fiber.Error) {
-	config, _ := config.LoadConfig(".")
+	config, _ := configs.LoadConfig(".")
 	// Kiểm tra refresh token hợp lệ
 	claims, err := utils.ValidateRefreshToken(refreshToken, config.RefreshTokenSecret)
 	if err != nil {
@@ -79,7 +81,7 @@ func (n *AuthServiceImpl) RefreshAccessToken(refreshToken string) (string, *fibe
 	return newAccessToken, nil
 }
 
-func (n *AuthServiceImpl) Register(data request.RegisterRequest) (*model.User, *fiber.Error) {
+func (n *AuthServiceImpl) Register(data requests.RegisterRequest) (*models.User, *fiber.Error) {
 	// Validate input data
 	if err := n.validate.Struct(data); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid data")
@@ -92,7 +94,7 @@ func (n *AuthServiceImpl) Register(data request.RegisterRequest) (*model.User, *
 	}
 
 	//save user data
-	user = &model.User{}
+	user = &models.User{}
 	copier.Copy(user, data)
 
 	//generate OTP
@@ -107,7 +109,7 @@ func (n *AuthServiceImpl) Register(data request.RegisterRequest) (*model.User, *
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Register your account unsuccessfully")
 	}
 
-	config, _ := config.LoadConfig(".")
+	config, _ := configs.LoadConfig(".")
 	content := helpers.RegistrationEmailData{
 		Name:     user.FullName,
 		AppName:  constants.APP_NAME,
@@ -176,7 +178,7 @@ func (n *AuthServiceImpl) ForgotPassword(email string) *fiber.Error {
 	return nil
 }
 
-func (n *AuthServiceImpl) VerifyAccount(data request.VerifyOTPRequest) *fiber.Error {
+func (n *AuthServiceImpl) VerifyAccount(data requests.VerifyOTPRequest) *fiber.Error {
 	// Check if user exists in the database
 	err := n.VerifyOtp(data)
 	if err != nil {
@@ -195,7 +197,7 @@ func (n *AuthServiceImpl) VerifyAccount(data request.VerifyOTPRequest) *fiber.Er
 	return nil
 }
 
-func (n *AuthServiceImpl) VerifyOtp(data request.VerifyOTPRequest) *fiber.Error {
+func (n *AuthServiceImpl) VerifyOtp(data requests.VerifyOTPRequest) *fiber.Error {
 	// Validate input data
 	if err := n.validate.Struct(data); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid data")
@@ -258,7 +260,7 @@ func (n *AuthServiceImpl) ResendOtp(email string) *fiber.Error {
 	return nil
 }
 
-func (n *AuthServiceImpl) ChangePassword(data request.ChangePasswordRequest, user *model.User) *fiber.Error {
+func (n *AuthServiceImpl) ChangePassword(data requests.ChangePasswordRequest, user *models.User) *fiber.Error {
 	//validate input data
 	if err := n.validate.Struct(data); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid data")
@@ -278,13 +280,13 @@ func (n *AuthServiceImpl) ChangePassword(data request.ChangePasswordRequest, use
 	return nil
 }
 
-func (n *AuthServiceImpl) SetNewPassword(data request.SetNewPasswordRequest) *fiber.Error {
+func (n *AuthServiceImpl) SetNewPassword(data requests.SetNewPasswordRequest) *fiber.Error {
 	//validate input data
 	if err := n.validate.Struct(data); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid data")
 	}
 
-	verr := n.VerifyOtp(request.VerifyOTPRequest{Otp: data.Otp, Email: data.Email})
+	verr := n.VerifyOtp(requests.VerifyOTPRequest{Otp: data.Otp, Email: data.Email})
 	if verr != nil {
 		return verr
 	}
@@ -306,7 +308,7 @@ func (n *AuthServiceImpl) SetNewPassword(data request.SetNewPasswordRequest) *fi
 	return nil
 }
 
-func (n *AuthServiceImpl) UploadAvatar(file string, user *model.User) *fiber.Error {
+func (n *AuthServiceImpl) UploadAvatar(file string, user *models.User) *fiber.Error {
 	// Validate input data
 	if file == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid avatar")

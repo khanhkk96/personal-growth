@@ -1,18 +1,18 @@
-package router
+package routers
 
 import (
 	"personal-growth/common/constants"
-	"personal-growth/controller"
+	"personal-growth/controllers"
 	"personal-growth/middlewares"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-func NewAuthRouter(controller *controller.AuthController, db *gorm.DB) *fiber.App {
-	appRouter := fiber.New()
+func NewAuthRouter(controller *controllers.AuthController, db *gorm.DB) *fiber.App {
+	authRouter := fiber.New()
 
-	appRouter.Route("/auth", func(router fiber.Router) {
+	authRouter.Route("/auth", func(router fiber.Router) {
 		router.Post("/register", controller.Register)
 		router.Post("/login", controller.Login)
 		router.Get("/refresh", controller.RefreshToken)
@@ -23,10 +23,10 @@ func NewAuthRouter(controller *controller.AuthController, db *gorm.DB) *fiber.Ap
 		router.Post("/set-new-password", controller.SetNewPassword)
 	})
 
-	authRouter := appRouter.Group("/", middlewares.Authenticate(), middlewares.GetProfileHandler(db))
+	requiredAuthRouter := authRouter.Group("/", middlewares.Authenticate(), middlewares.GetProfileHandler(db))
 
 	// validate authentication middleware
-	authRouter.Route("/auth", func(router fiber.Router) {
+	requiredAuthRouter.Route("/auth", func(router fiber.Router) {
 		router.Get("/me", controller.Me)
 		router.Post("/change-password", controller.ChangePassword)
 		router.Post("/upload-avatar", middlewares.Uploadfile(middlewares.UploadFileOptions{
@@ -35,5 +35,5 @@ func NewAuthRouter(controller *controller.AuthController, db *gorm.DB) *fiber.Ap
 		}), controller.UploadAvatar)
 	})
 
-	return appRouter
+	return authRouter
 }

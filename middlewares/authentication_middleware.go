@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"personal-growth/model"
+	"personal-growth/models"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
@@ -42,7 +42,7 @@ func GetProfileHandler(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userID := c.Locals("user_id").(string)
 
-		var user *model.User
+		var user *models.User
 		if err := db.First(&user, "id = ?", userID).Error; err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": "User not found",
