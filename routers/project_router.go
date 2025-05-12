@@ -17,6 +17,7 @@ func NewProjectRouter(controller *controllers.ProjectController, db *gorm.DB) *f
 			router.Put("/:id", controller.UpdateProject)
 			router.Delete("/:id", controller.DeleteProject)
 			router.Get("/:id", controller.GetProjectDetail)
+			router.Get("/", controller.GetProjects)
 		})
 
 	return projectRouter

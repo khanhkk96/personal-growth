@@ -89,8 +89,13 @@ func (p *ProjectServiceImpl) Detail(id string) (*responses.ProjectResponse, *fib
 }
 
 // List implements ProjectService.
-func (p *ProjectServiceImpl) List(options requests.GetProjectOptions) (*responses.ProjectPageResponse, *fiber.Error) {
-	panic("unimplemented")
+func (p *ProjectServiceImpl) List(options requests.ProjectFilters) (*responses.ProjectPageResponse, *fiber.Error) {
+	projectFilter := &models.Project{}
+
+	projects, _ := p.repository.FindAll(projectFilter)
+	println(projects)
+
+	return nil, nil
 }
 
 // Update implements ProjectService.

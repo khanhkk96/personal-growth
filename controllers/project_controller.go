@@ -8,6 +8,7 @@ import (
 	"personal-growth/services"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/mitchellh/mapstructure"
 )
 
 type ProjectController struct {
@@ -134,6 +135,41 @@ func (controller *ProjectController) GetProjectDetail(ctx *fiber.Ctx) error {
 		Status:  "ok",
 		Message: "Delete the project successfully",
 		Data:    project,
+	}
+
+	return ctx.Status(200).JSON(response)
+}
+
+// @Summary 	Get project list
+// @Description Get the list of the project
+// @Tags 		Project
+// @Security  	BearerAuth
+// @Accept 		json
+// @Produce 	json
+// @Success 	200 {object} responses.ProjectPageResponse
+// @Param 		page query int false "Page number"
+// @Param 		limit query int false "Page size"
+// @Param 		q query string false "Search by name/stack"
+// @Param 		status query string false "Status" Enums(planning, postpone, ongoing, finished)
+// @Param 		type query string false "Type" Enums(web, desktop_app, mobile_app, library)
+// @Router 		/api/project [get]
+func (controller *ProjectController) GetProjects(ctx *fiber.Ctx) error {
+	queries := ctx.Queries()
+
+	var filter requests.ProjectFilters
+	err := mapstructure.Decode(queries, &filter)
+	helpers.ErrorPanic(err)
+
+	data, cerr := controller.service.List(filter)
+	if cerr != nil {
+		return ctx.Status(cerr.Code).JSON(cerr.Message)
+	}
+
+	response := responses.Response{
+		Code:    200,
+		Status:  "ok",
+		Message: "Get list of project successfully",
+		Data:    data,
 	}
 
 	return ctx.Status(200).JSON(response)

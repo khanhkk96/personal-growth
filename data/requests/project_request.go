@@ -18,7 +18,7 @@ type CreateOrUpdateProjectRequest struct {
 	Status enums.ProjectStatus `json:"status" validate:"required,project_status_enum"`
 }
 
-type GetProjectOptions struct {
+type ProjectFilters struct {
 	BaseRequest
 	// Status *enums.ProjectStatus `json:"status" validate:"oneof=planning ongoing postpone finished"`
 	// Type   *enums.ProjectType   `json:"type" validate:"oneof=web mobile_app desktop_app library"`

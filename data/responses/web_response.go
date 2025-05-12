@@ -19,15 +19,22 @@ type BasePaginatedResponse[T any] struct {
 	HasNextPage     bool `json:"hasNextPage"`
 }
 
-func NewPaginatedResponse[T any](page, limit, totalItems int, data []T) BasePaginatedResponse[T] {
-	totalPages := int(math.Round(float64(totalItems / limit)))
+type PaginationMetaData[T any] struct {
+	page       int
+	limit      int
+	totalItems int
+	data       []T
+}
+
+func NewPaginatedResponse[T any](meta PaginationMetaData[T]) BasePaginatedResponse[T] {
+	totalPages := int(math.Round(float64(meta.totalItems / meta.limit)))
 	return BasePaginatedResponse[T]{
-		Page:            page,
-		Limit:           limit,
-		TotalItems:      totalItems,
+		Page:            meta.page,
+		Limit:           meta.limit,
+		TotalItems:      meta.totalItems,
 		PageCount:       totalPages,
-		HasPreviousPage: page > 1,
-		HasNextPage:     page < totalPages,
-		Items:           data,
+		HasPreviousPage: meta.page > 1,
+		HasNextPage:     meta.page < totalPages,
+		Items:           meta.data,
 	}
 }
