@@ -14,6 +14,9 @@ func NewProjectRouter(controller *controllers.ProjectController, db *gorm.DB) *f
 	projectRouter.Group("/", middlewares.Authenticate(), middlewares.GetProfileHandler(db)).Route("/project",
 		func(router fiber.Router) {
 			router.Post("/", controller.AddNewProject)
+			router.Put("/:id", controller.UpdateProject)
+			router.Delete("/:id", controller.DeleteProject)
+			router.Get("/:id", controller.GetProjectDetail)
 		})
 
 	return projectRouter

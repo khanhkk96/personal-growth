@@ -12,4 +12,5 @@ type UserResponse struct {
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	IsActive bool   `json:"is_active"`
+	Role     string `json:"role"`
 }

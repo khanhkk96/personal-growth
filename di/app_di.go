@@ -10,6 +10,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+	"personal-growth/common/enums"
 	"personal-growth/controllers"
 	"personal-growth/repositories"
 	"personal-growth/routers"
@@ -44,7 +45,9 @@ func InitProject(db *gorm.DB) *fiber.App {
 
 // ProvideValidator creates a new validator instance.
 func ProvideValidator() *validator.Validate {
-	return validator.New()
+	v := validator.New()
+	enums.RegisterCustomValidations(v)
+	return v
 }
 
 // ProvideUserRepository creates a new User repository.

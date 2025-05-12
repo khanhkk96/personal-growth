@@ -12,8 +12,8 @@ type BaseRepository[T any] interface {
 	FindAll(cons ...interface{}) ([]T, error)
 	FindMany(query interface{}, args ...interface{}) ([]T, error)
 	Update(entity *T) error
-	Delete(id uint) error
-	Remove(id uint) error
+	Delete(id interface{}) error
+	Remove(id interface{}) error
 }
 
 // baseRepository is the default implementation of BaseRepository.
@@ -31,7 +31,7 @@ func (r *baseRepository[T]) Create(entity *T) error {
 
 func (r *baseRepository[T]) FindByID(id interface{}) (*T, error) {
 	var entity T
-	if err := r.db.First(&entity, id).Error; err != nil {
+	if err := r.db.First(&entity, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -67,12 +67,12 @@ func (r *baseRepository[T]) Update(entity *T) error {
 	return r.db.Save(entity).Error
 }
 
-func (r *baseRepository[T]) Delete(id uint) error {
+func (r *baseRepository[T]) Delete(id interface{}) error {
 	var entity T
-	return r.db.Unscoped().Delete(&entity, id).Error
+	return r.db.Unscoped().Delete(&entity, "id = ?", id).Error
 }
 
-func (r *baseRepository[T]) Remove(id uint) error {
+func (r *baseRepository[T]) Remove(id interface{}) error {
 	var entity T
-	return r.db.Delete(&entity, id).Error
+	return r.db.Delete(&entity, "id = ?", id).Error
 }

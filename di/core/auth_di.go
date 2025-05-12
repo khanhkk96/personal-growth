@@ -1,6 +1,7 @@
 package injections
 
 import (
+	"personal-growth/common/enums"
 	"personal-growth/controllers"
 	"personal-growth/repositories"
 	"personal-growth/routers"
@@ -28,7 +29,9 @@ import (
 
 // ProvideValidator creates a new validator instance.
 func ProvideValidator() *validator.Validate {
-	return validator.New()
+	v := validator.New()
+	enums.RegisterCustomValidations(v)
+	return v
 }
 
 // ProvideUserRepository creates a new User repository.
