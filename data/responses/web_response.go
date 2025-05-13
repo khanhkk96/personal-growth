@@ -1,6 +1,10 @@
 package responses
 
-import "math"
+import (
+	"math"
+
+	"github.com/jinzhu/copier"
+)
 
 type Response struct {
 	Code    int         `json:"code"`
@@ -19,15 +23,36 @@ type BasePaginatedResponse[T any] struct {
 	HasNextPage     bool `json:"hasNextPage"`
 }
 
-type PaginationMetaData[T any] struct {
+type PaginationMetaData struct {
 	page       int
 	limit      int
 	totalItems int
-	data       []T
+	data       []interface{}
 }
 
-func NewPaginatedResponse[T any](meta PaginationMetaData[T]) BasePaginatedResponse[T] {
-	totalPages := int(math.Round(float64(meta.totalItems / meta.limit)))
+func NewPaginationMetaData(page int, limit int, totalItems int, data []interface{}) PaginationMetaData {
+	return PaginationMetaData{
+		page:       page,
+		limit:      limit,
+		totalItems: totalItems,
+		data:       data,
+	}
+}
+
+func NewPaginatedResponse[T any](meta PaginationMetaData) BasePaginatedResponse[T] {
+	// Calculate total pages using math.Ceil for proper rounding
+	totalPages := int(math.Ceil(float64(meta.totalItems) / float64(meta.limit)))
+
+	var items []T
+	for _, value := range meta.data {
+		var item T
+		// Handle potential errors from copier.Copy
+		if err := copier.Copy(&item, value); err != nil {
+			continue // Skip the item if copying fails
+		}
+		items = append(items, item)
+	}
+
 	return BasePaginatedResponse[T]{
 		Page:            meta.page,
 		Limit:           meta.limit,
@@ -35,6 +60,6 @@ func NewPaginatedResponse[T any](meta PaginationMetaData[T]) BasePaginatedRespon
 		PageCount:       totalPages,
 		HasPreviousPage: meta.page > 1,
 		HasNextPage:     meta.page < totalPages,
-		Items:           meta.data,
+		Items:           items,
 	}
 }

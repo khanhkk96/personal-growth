@@ -11,9 +11,11 @@ type BaseRepository[T any] interface {
 	FindOneBy(query interface{}, args ...interface{}) (*T, error)
 	FindAll(cons ...interface{}) ([]T, error)
 	FindMany(query interface{}, args ...interface{}) ([]T, error)
+	FindMapMany(cons map[string]interface{}) ([]T, error)
 	Update(entity *T) error
 	Delete(id interface{}) error
 	Remove(id interface{}) error
+	GetDataSource() *gorm.DB
 }
 
 // baseRepository is the default implementation of BaseRepository.
@@ -23,6 +25,10 @@ type baseRepository[T any] struct {
 
 func NewBaseRepository[T any](db *gorm.DB) BaseRepository[T] {
 	return &baseRepository[T]{db}
+}
+
+func (r *baseRepository[T]) GetDataSource() *gorm.DB {
+	return r.db
 }
 
 func (r *baseRepository[T]) Create(entity *T) error {
@@ -58,6 +64,14 @@ func (r *baseRepository[T]) FindAll(cons ...interface{}) ([]T, error) {
 func (r *baseRepository[T]) FindMany(query interface{}, args ...interface{}) ([]T, error) {
 	var entities []T
 	if err := r.db.Where(query, args).Find(&entities).Error; err != nil {
+		return nil, err
+	}
+	return entities, nil
+}
+
+func (r *baseRepository[T]) FindMapMany(cons map[string]interface{}) ([]T, error) {
+	var entities []T
+	if err := r.db.Where(cons).Find(&entities).Error; err != nil {
 		return nil, err
 	}
 	return entities, nil

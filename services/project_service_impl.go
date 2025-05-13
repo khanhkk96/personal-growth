@@ -1,12 +1,14 @@
 package services
 
 import (
+	"fmt"
 	"log"
 	"personal-growth/common/enums"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
 	"personal-growth/models"
 	"personal-growth/repositories"
+	"personal-growth/utils"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -89,13 +91,41 @@ func (p *ProjectServiceImpl) Detail(id string) (*responses.ProjectResponse, *fib
 }
 
 // List implements ProjectService.
-func (p *ProjectServiceImpl) List(options requests.ProjectFilters) (*responses.ProjectPageResponse, *fiber.Error) {
-	projectFilter := &models.Project{}
+func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *models.User) (*responses.ProjectPageResponse, *fiber.Error) {
+	var projects []models.Project
 
-	projects, _ := p.repository.FindAll(projectFilter)
-	println(projects)
+	builder := p.repository.GetDataSource().Model(&models.Project{})
 
-	return nil, nil
+	if !utils.IsEmpty(options.Query) {
+		queryByName := fmt.Sprintf(`%%%s%%`, *options.Query)
+		builder = builder.Where("name LIKE ? OR stack LIKE ?", queryByName, queryByName)
+	}
+
+	if !utils.IsEmpty((*string)(options.Status)) {
+		builder = builder.Where("status = ?", *options.Status)
+	}
+
+	if !utils.IsEmpty((*string)(options.Type)) {
+		builder = builder.Where("type = ?", *options.Type)
+	}
+
+	if user.Role != enums.ADMIN {
+		builder = builder.Where("created_by_id = ?", user.Id)
+	}
+
+	var totalItem int64
+	builder.Count(&totalItem)
+	builder.Offset((options.Page - 1) * options.Limit).Limit(options.Limit).Find(&projects)
+
+	// Convert projects to []interface{}
+	projectInterfaces := make([]interface{}, len(projects))
+	for i, project := range projects {
+		projectInterfaces[i] = project
+	}
+	metadata := responses.NewPaginationMetaData(options.Page, options.Limit, int(totalItem), projectInterfaces)
+	data := responses.NewPaginatedResponse[responses.ProjectResponse](metadata)
+
+	return &data, nil
 }
 
 // Update implements ProjectService.
@@ -106,7 +136,7 @@ func (p *ProjectServiceImpl) Update(id string, data requests.CreateOrUpdateProje
 	}
 
 	// check if project name already exists
-	existedProject, _ := p.repository.FindOneBy("name = ? AND created_by_id = ? AND id = ?", data.Name, user.Id, id)
+	existedProject, _ := p.repository.FindOneBy("name = ? AND created_by_id = ? AND id <> ?", data.Name, user.Id, id)
 	if existedProject != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Project already exists")
 	}

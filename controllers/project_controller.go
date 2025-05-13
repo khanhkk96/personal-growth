@@ -1,14 +1,15 @@
 package controllers
 
 import (
+	"personal-growth/common/enums"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
 	"personal-growth/helpers"
 	"personal-growth/models"
 	"personal-growth/services"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/mitchellh/mapstructure"
 )
 
 type ProjectController struct {
@@ -154,13 +155,19 @@ func (controller *ProjectController) GetProjectDetail(ctx *fiber.Ctx) error {
 // @Param 		type query string false "Type" Enums(web, desktop_app, mobile_app, library)
 // @Router 		/api/project [get]
 func (controller *ProjectController) GetProjects(ctx *fiber.Ctx) error {
-	queries := ctx.Queries()
+	user := ctx.Locals("user").(*models.User)
 
 	var filter requests.ProjectFilters
-	err := mapstructure.Decode(queries, &filter)
-	helpers.ErrorPanic(err)
+	query := ctx.Query("q")
+	filter.Query = &query
+	filter.Page, _ = strconv.Atoi(ctx.Query("page", "1"))
+	filter.Limit, _ = strconv.Atoi(ctx.Query("limit", "10"))
+	status := enums.ProjectStatus(ctx.Query("status"))
+	filter.Status = &status
+	projectType := enums.ProjectType(ctx.Query("type"))
+	filter.Type = &projectType
 
-	data, cerr := controller.service.List(filter)
+	data, cerr := controller.service.List(filter, user)
 	if cerr != nil {
 		return ctx.Status(cerr.Code).JSON(cerr.Message)
 	}
