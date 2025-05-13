@@ -118,12 +118,13 @@ func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *models.
 	builder.Offset((options.Page - 1) * options.Limit).Limit(options.Limit).Find(&projects)
 
 	// Convert projects to []interface{}
-	projectInterfaces := make([]interface{}, len(projects))
+	projectResponses := make([]responses.ProjectResponse, len(projects))
 	for i, project := range projects {
-		projectInterfaces[i] = project
+		copier.Copy(&projectResponses[i], project)
 	}
-	metadata := responses.NewPaginationMetaData(options.Page, options.Limit, int(totalItem), projectInterfaces)
-	data := responses.NewPaginatedResponse[responses.ProjectResponse](metadata)
+
+	metadata := responses.NewPaginationMetaData(options.Page, options.Limit, int(totalItem), projectResponses)
+	data := responses.NewPaginatedResponse(metadata)
 
 	return &data, nil
 }
