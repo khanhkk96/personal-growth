@@ -6,6 +6,7 @@ import (
 	"personal-growth/repositories"
 	"personal-growth/routers"
 	"personal-growth/services"
+	service_interfaces "personal-growth/services/interfaces"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -40,12 +41,12 @@ func ProvideUserRepository(db *gorm.DB) repositories.UserRepository {
 }
 
 // ProvideAuthService creates a new Auth service.
-func ProvideAuthService(repo repositories.UserRepository, validate *validator.Validate) services.AuthService {
+func ProvideAuthService(repo repositories.UserRepository, validate *validator.Validate) service_interfaces.AuthService {
 	return services.NewAuthServiceImpl(repo, validate)
 }
 
 // ProvideAuthController creates a new Auth controller.
-func ProvideAuthController(service services.AuthService) *controllers.AuthController {
+func ProvideAuthController(service service_interfaces.AuthService) *controllers.AuthController {
 	return controllers.NewAuthController(service)
 }
 

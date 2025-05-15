@@ -5,6 +5,7 @@ import (
 	"personal-growth/repositories"
 	"personal-growth/routers"
 	"personal-growth/services"
+	service_interfaces "personal-growth/services/interfaces"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -18,12 +19,12 @@ func ProvideProjectRepository(db *gorm.DB) repositories.ProjectRepository {
 }
 
 // ProvideProjectService creates a new Project service.
-func ProvideProjectService(repo repositories.ProjectRepository, validate *validator.Validate) services.ProjectService {
+func ProvideProjectService(repo repositories.ProjectRepository, validate *validator.Validate) service_interfaces.ProjectService {
 	return services.NewProjectServiceImpl(repo, validate)
 }
 
 // ProvideProjectController creates a new Project controller.
-func ProvideProjectController(service services.ProjectService) *controllers.ProjectController {
+func ProvideProjectController(service service_interfaces.ProjectService) *controllers.ProjectController {
 	return controllers.NewProjectController(service)
 }
 

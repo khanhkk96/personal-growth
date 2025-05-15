@@ -6,17 +6,17 @@ import (
 	"personal-growth/data/responses"
 	"personal-growth/helpers"
 	"personal-growth/models"
-	"personal-growth/services"
+	service_interfaces "personal-growth/services/interfaces"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type ProjectController struct {
-	service services.ProjectService
+	service service_interfaces.ProjectService
 }
 
-func NewProjectController(service services.ProjectService) *ProjectController {
+func NewProjectController(service service_interfaces.ProjectService) *ProjectController {
 	return &ProjectController{
 		service: service,
 	}

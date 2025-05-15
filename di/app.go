@@ -6,12 +6,10 @@ import (
 )
 
 func MountAppRouters(app *fiber.App, db *gorm.DB) {
-	// validate := validator.New()
-
 	//auth
 	authModule := InitAuth(db)
-	app.Mount("/api", authModule)
-	//project
 	projectModule := InitProject(db)
-	app.Mount("/api", projectModule)
+	issueModule := InitIssue(db)
+
+	app.Mount("/api", authModule).Mount("/api", projectModule).Mount("/api", issueModule)
 }

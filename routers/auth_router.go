@@ -29,9 +29,9 @@ func NewAuthRouter(controller *controllers.AuthController, db *gorm.DB) *fiber.A
 	requiredAuthRouter.Route("/auth", func(router fiber.Router) {
 		router.Get("/me", controller.Me)
 		router.Post("/change-password", controller.ChangePassword)
-		router.Post("/upload-avatar", middlewares.Uploadfile(middlewares.UploadFileOptions{
+		router.Post("/upload-avatar", middlewares.UploadFileHandlder(middlewares.UploadFileOptions{
 			AllowedTypes: constants.ImageFileTypes,
-			BasePath:     "avatar",
+			Destination:  "avatar",
 		}), controller.UploadAvatar)
 	})
 

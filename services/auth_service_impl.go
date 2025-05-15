@@ -11,6 +11,7 @@ import (
 	"personal-growth/helpers"
 	"personal-growth/models"
 	"personal-growth/repositories"
+	service_interfaces "personal-growth/services/interfaces"
 	"personal-growth/utils"
 	"time"
 
@@ -25,7 +26,7 @@ type AuthServiceImpl struct {
 	validate   *validator.Validate
 }
 
-func NewAuthServiceImpl(repository repositories.UserRepository, validate *validator.Validate) AuthService {
+func NewAuthServiceImpl(repository repositories.UserRepository, validate *validator.Validate) service_interfaces.AuthService {
 	return &AuthServiceImpl{
 		repository: repository,
 		validate:   validate,

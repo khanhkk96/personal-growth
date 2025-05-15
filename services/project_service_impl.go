@@ -8,6 +8,7 @@ import (
 	"personal-growth/data/responses"
 	"personal-growth/models"
 	"personal-growth/repositories"
+	service_interfaces "personal-growth/services/interfaces"
 	"personal-growth/utils"
 
 	"github.com/go-playground/validator/v10"
@@ -20,7 +21,7 @@ type ProjectServiceImpl struct {
 	validate   *validator.Validate
 }
 
-func NewProjectServiceImpl(repository repositories.ProjectRepository, validate *validator.Validate) ProjectService {
+func NewProjectServiceImpl(repository repositories.ProjectRepository, validate *validator.Validate) service_interfaces.ProjectService {
 	return &ProjectServiceImpl{
 		repository: repository,
 		validate:   validate,

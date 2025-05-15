@@ -1,4 +1,4 @@
-package services
+package service_interfaces
 
 import (
 	"personal-growth/data/requests"

@@ -5,11 +5,11 @@ import "github.com/go-playground/validator/v10"
 type ScheduleStatus string
 
 const (
-	PENDING    ScheduleStatus = "pending"
-	PERFORMING ScheduleStatus = "performing"
-	SUSPENDING ScheduleStatus = "suspending"
-	DONE       ScheduleStatus = "done"
-	CANCELED   ScheduleStatus = "canceled"
+	SS_PENDING    ScheduleStatus = "pending"
+	SS_PERFORMING ScheduleStatus = "performing"
+	SS_SUSPENDING ScheduleStatus = "suspending"
+	SS_DONE       ScheduleStatus = "done"
+	SS_CANCELED   ScheduleStatus = "canceled"
 )
 
 // func IsValidScheduleStatus(status ScheduleStatus) bool {
@@ -38,10 +38,10 @@ func isValidScheduleStatus(fl validator.FieldLevel) bool {
 type ProjectStatus string
 
 const (
-	PLANNING ProjectStatus = "planning"
-	ONGOING  ProjectStatus = "ongoing"
-	POSTPONE ProjectStatus = "postpone"
-	FINISHED ProjectStatus = "finished"
+	PS_PLANNING ProjectStatus = "planning"
+	PS_ONGOING  ProjectStatus = "ongoing"
+	PS_POSTPONE ProjectStatus = "postpone"
+	PS_FINISHED ProjectStatus = "finished"
 )
 
 // func IsValidProjectStatus(status ProjectStatus) bool {

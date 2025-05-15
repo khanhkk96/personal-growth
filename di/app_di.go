@@ -15,6 +15,7 @@ import (
 	"personal-growth/repositories"
 	"personal-growth/routers"
 	"personal-growth/services"
+	"personal-growth/services/interfaces"
 )
 
 // Injectors from auth_di.go:
@@ -26,6 +27,18 @@ func InitAuth(db *gorm.DB) *fiber.App {
 	authService := ProvideAuthService(userRepository, validate)
 	authController := ProvideAuthController(authService)
 	app := ProvideAuthRouter(authController, db)
+	return app
+}
+
+// Injectors from issue_di.go:
+
+// InitIssue initializes the Issue module using Wire.
+func InitIssue(db *gorm.DB) *fiber.App {
+	issueRepository := ProvideIssueRepository(db)
+	validate := ProvideValidator()
+	issueService := ProvideIssueService(issueRepository, validate)
+	issueController := ProvideIssueController(issueService)
+	app := ProvideIssueRouter(issueController, db)
 	return app
 }
 
@@ -56,18 +69,40 @@ func ProvideUserRepository(db *gorm.DB) repositories.UserRepository {
 }
 
 // ProvideAuthService creates a new Auth service.
-func ProvideAuthService(repo repositories.UserRepository, validate *validator.Validate) services.AuthService {
+func ProvideAuthService(repo repositories.UserRepository, validate *validator.Validate) service_interfaces.AuthService {
 	return services.NewAuthServiceImpl(repo, validate)
 }
 
 // ProvideAuthController creates a new Auth controller.
-func ProvideAuthController(service services.AuthService) *controllers.AuthController {
+func ProvideAuthController(service service_interfaces.AuthService) *controllers.AuthController {
 	return controllers.NewAuthController(service)
 }
 
 // ProvideAuthRouter creates a new Auth router.
 func ProvideAuthRouter(controller *controllers.AuthController, db *gorm.DB) *fiber.App {
 	return routers.NewAuthRouter(controller, db)
+}
+
+// issue_di.go:
+
+// ProvideIssueRepository creates a new Issue repository.
+func ProvideIssueRepository(db *gorm.DB) repositories.IssueRepository {
+	return repositories.NewIssueRepository(db)
+}
+
+// ProvideIssueService creates a new Issue service.
+func ProvideIssueService(repo repositories.IssueRepository, validate *validator.Validate) service_interfaces.IssueService {
+	return services.NewIssueServiceImpl(repo, validate)
+}
+
+// ProvideIssueController creates a new Issue controller.
+func ProvideIssueController(service service_interfaces.IssueService) *controllers.IssueController {
+	return controllers.NewIssueController(service)
+}
+
+// ProvideIssueRouter creates a new Issue router.
+func ProvideIssueRouter(controller *controllers.IssueController, db *gorm.DB) *fiber.App {
+	return routers.NewIssueRouter(controller, db)
 }
 
 // project_di.go:
@@ -78,12 +113,12 @@ func ProvideProjectRepository(db *gorm.DB) repositories.ProjectRepository {
 }
 
 // ProvideProjectService creates a new Project service.
-func ProvideProjectService(repo repositories.ProjectRepository, validate *validator.Validate) services.ProjectService {
+func ProvideProjectService(repo repositories.ProjectRepository, validate *validator.Validate) service_interfaces.ProjectService {
 	return services.NewProjectServiceImpl(repo, validate)
 }
 
 // ProvideProjectController creates a new Project controller.
-func ProvideProjectController(service services.ProjectService) *controllers.ProjectController {
+func ProvideProjectController(service service_interfaces.ProjectService) *controllers.ProjectController {
 	return controllers.NewProjectController(service)
 }
 

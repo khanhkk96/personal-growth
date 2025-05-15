@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -47,6 +48,9 @@ func (r *baseRepository[T]) FindOneBy(query interface{}, args ...interface{}) (*
 	var entity T
 
 	if err := r.db.Where(query, args...).First(&entity).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
