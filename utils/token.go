@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -92,4 +95,10 @@ func ValidateRefreshToken(tokenStr string, secretKey string) (jwt.MapClaims, err
 	}
 
 	return claims, nil
+}
+
+func GenerateSignature(rawData, secretKey string) string {
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(rawData))
+	return hex.EncodeToString(h.Sum(nil))
 }

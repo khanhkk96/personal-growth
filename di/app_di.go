@@ -42,6 +42,18 @@ func InitIssue(db *gorm.DB) *fiber.App {
 	return app
 }
 
+// Injectors from payment_di.go:
+
+// InitPayment initializes the Payment module using Wire.
+func InitPayment(db *gorm.DB) *fiber.App {
+	paymentRepository := ProvidePaymentRepository(db)
+	validate := ProvideValidator()
+	paymentService := ProvidePaymentService(paymentRepository, validate)
+	paymentController := ProvidePaymentController(paymentService)
+	app := ProvidePaymentRouter(paymentController, db)
+	return app
+}
+
 // Injectors from project_di.go:
 
 // InitProject initializes the Project module using Wire.
@@ -103,6 +115,28 @@ func ProvideIssueController(service service_interfaces.IssueService) *controller
 // ProvideIssueRouter creates a new Issue router.
 func ProvideIssueRouter(controller *controllers.IssueController, db *gorm.DB) *fiber.App {
 	return routers.NewIssueRouter(controller, db)
+}
+
+// payment_di.go:
+
+// ProvidePaymentRepository creates a new Payment repository.
+func ProvidePaymentRepository(db *gorm.DB) repositories.PaymentRepository {
+	return repositories.NewPaymentRepository(db)
+}
+
+// ProvidePaymentService creates a new Payment service.
+func ProvidePaymentService(repo repositories.PaymentRepository, validate *validator.Validate) service_interfaces.PaymentService {
+	return services.NewPaymentServiceImpl(repo, validate)
+}
+
+// ProvidePaymentController creates a new Payment controller.
+func ProvidePaymentController(service service_interfaces.PaymentService) *controllers.PaymentController {
+	return controllers.NewPaymentController(service)
+}
+
+// ProvidePaymentRouter creates a new Payment router.
+func ProvidePaymentRouter(controller *controllers.PaymentController, db *gorm.DB) *fiber.App {
+	return routers.NewPaymentRouter(controller, db)
 }
 
 // project_di.go:
