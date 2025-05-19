@@ -7,5 +7,6 @@ import (
 )
 
 type PaymentService interface {
-	CreateMoMoPayment(request requests.MoMoRequest) (string, *fiber.Error)
+	CreateMoMoPayment(request requests.PaymentRequest) (string, *fiber.Error)
+	CreateVNPayPayment(request requests.PaymentRequest) (string, *fiber.Error)
 }

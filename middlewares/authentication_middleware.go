@@ -11,6 +11,7 @@ import (
 
 func Authenticate() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		println("áhdfashfsdljkhfajkh8734urbew732y")
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing token"})

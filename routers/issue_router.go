@@ -11,7 +11,7 @@ import (
 func NewIssueRouter(controller *controllers.IssueController, db *gorm.DB) *fiber.App {
 	issueRouter := fiber.New()
 
-	issueRouter.Group("/", middlewares.Authenticate(), middlewares.GetProfileHandler(db)).Route("/issue",
+	issueRouter.Group("/issue", middlewares.Authenticate(), middlewares.GetProfileHandler(db)).Route("/",
 		func(router fiber.Router) {
 			router.Post("/", controller.AddNewIssue)
 			router.Put("/:id", controller.UpdateIssue)

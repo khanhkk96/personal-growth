@@ -7,8 +7,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"personal-growth/utils"
+	"sort"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sony/sonyflake"
@@ -48,8 +52,8 @@ func PayViaMoMo(amountV int64, description string) (string, error) {
 
 	amount := strconv.FormatInt(amountV, 10)
 	orderInfo := description
-	redirectUrl := "http://localhost:8000/api/payment/momoreturn"
-	ipnUrl := "http://localhost:8000/api/payment/momonotify"
+	redirectUrl := fmt.Sprintf("%s/api/payment/momo_return", viper.GetString("API_SERVER_ADDRESS"))
+	ipnUrl := fmt.Sprintf("%s/api/payment/momo_notify", viper.GetString("API_SERVER_ADDRESS"))
 	requestType := "captureWallet"
 	extraData := ""
 
@@ -57,7 +61,7 @@ func PayViaMoMo(amountV int64, description string) (string, error) {
 	rawSignature := fmt.Sprintf("accessKey=%s&amount=%s&extraData=%s&ipnUrl=%s&orderId=%s&orderInfo=%s&partnerCode=%s&redirectUrl=%s&requestId=%s&requestType=%s",
 		accessKey, amount, extraData, ipnUrl, orderId, orderInfo, partnerCode, redirectUrl, requestId, requestType)
 
-	signature := utils.GenerateSignature(rawSignature, secretKey)
+	signature := utils.CreateMoMoSignature(rawSignature, secretKey)
 
 	payload := MoMoPayload{
 		PartnerCode: partnerCode,
@@ -96,4 +100,68 @@ func PayViaMoMo(amountV int64, description string) (string, error) {
 	// fmt.Printf("Response::::%v", requestRes)
 
 	return requestRes["payUrl"].(string), nil
+}
+
+func PayViaVNPay(amountV int64, description string) (string, error) {
+	// // config
+	vnp_TmnCode := viper.GetString("VNP_TMNCODE")
+	vnp_HashSecret := viper.GetString("VNP_HASHSECRET")
+	vnp_Url := viper.GetString("VNP_URL")
+	vnp_Version := viper.GetString("VNP_VERSION")
+	vnp_ReturnUrl := fmt.Sprintf("%s/api/payment/vnpay_return", viper.GetString("API_SERVER_ADDRESS"))
+
+	flake := sonyflake.NewSonyflake(sonyflake.Settings{})
+	b, err := flake.NextID()
+	if err != nil {
+		log.Println(err)
+	}
+	orderId := strconv.FormatUint(b, 16)
+
+	now := time.Now()
+	txnRef := orderId
+	amountStr := fmt.Sprintf("%d", amountV*100) // VNPAY yêu cầu x100
+
+	params := map[string]string{
+		"vnp_Version":    vnp_Version,
+		"vnp_Command":    "pay",
+		"vnp_TmnCode":    vnp_TmnCode,
+		"vnp_Amount":     amountStr,
+		"vnp_CurrCode":   "VND",
+		"vnp_OrderInfo":  description,
+		"vnp_OrderType":  "other",
+		"vnp_Locale":     "vn",
+		"vnp_ReturnUrl":  vnp_ReturnUrl,
+		"vnp_IpAddr":     "127.0.0.1",
+		"vnp_CreateDate": now.Format("20060102150405"),
+		"vnp_ExpireDate": now.Add(time.Duration(time.Minute * 10)).Format("20060102150405"),
+		"vnp_TxnRef":     txnRef,
+		// "vnp_TxnRef":     fmt.Sprintf("%s%s", txnRef, now.Format("15:04:05")),
+	}
+
+	// Sắp xếp thứ tự param
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	// Tạo chuỗi dữ liệu để ký
+	var hashData strings.Builder
+	var query strings.Builder
+	for i, k := range keys {
+		val := url.QueryEscape(params[k])
+		if i > 0 {
+			hashData.WriteString("&")
+			query.WriteString("&")
+		}
+		hashData.WriteString(k + "=" + val)
+		query.WriteString(k + "=" + val)
+	}
+
+	// Ký dữ liệu
+	secureHash := utils.CreateVNPayHash(hashData.String(), vnp_HashSecret)
+
+	paymentUrl := fmt.Sprintf("%s?%s&vnp_SecureHash=%s", vnp_Url, query.String(), secureHash)
+
+	return paymentUrl, nil
 }

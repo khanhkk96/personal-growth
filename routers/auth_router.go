@@ -23,10 +23,7 @@ func NewAuthRouter(controller *controllers.AuthController, db *gorm.DB) *fiber.A
 		router.Post("/set-new-password", controller.SetNewPassword)
 	})
 
-	requiredAuthRouter := authRouter.Group("/", middlewares.Authenticate(), middlewares.GetProfileHandler(db))
-
-	// validate authentication middleware
-	requiredAuthRouter.Route("/auth", func(router fiber.Router) {
+	authRouter.Group("/auth", middlewares.Authenticate(), middlewares.GetProfileHandler(db)).Route("/", func(router fiber.Router) {
 		router.Get("/me", controller.Me)
 		router.Post("/change-password", controller.ChangePassword)
 		router.Post("/upload-avatar", middlewares.UploadFileHandlder(middlewares.UploadFileOptions{

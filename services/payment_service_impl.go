@@ -24,10 +24,21 @@ func NewPaymentServiceImpl(repository repositories.PaymentRepository, validate *
 }
 
 // createMoMoPayment implements service_interfaces.PaymentService.
-func (p *PaymentServiceImpl) CreateMoMoPayment(request requests.MoMoRequest) (string, *fiber.Error) {
+func (p *PaymentServiceImpl) CreateMoMoPayment(request requests.PaymentRequest) (string, *fiber.Error) {
 	url, err := helpers.PayViaMoMo(request.Amount, request.Description)
 	if err != nil {
 		return "", fiber.NewError(fiber.StatusBadRequest, "Make a payment by MOMO unsuccessfully")
+	}
+
+	fmt.Println("Payment URL:", url)
+
+	return url, nil
+}
+
+func (p *PaymentServiceImpl) CreateVNPayPayment(request requests.PaymentRequest) (string, *fiber.Error) {
+	url, err := helpers.PayViaVNPay(request.Amount, request.Description)
+	if err != nil {
+		return "", fiber.NewError(fiber.StatusBadRequest, "Make a payment by VNPAY unsuccessfully")
 	}
 
 	fmt.Println("Payment URL:", url)

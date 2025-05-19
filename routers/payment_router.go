@@ -11,15 +11,15 @@ import (
 func NewPaymentRouter(controller *controllers.PaymentController, db *gorm.DB) *fiber.App {
 	paymentRouter := fiber.New()
 
-	requiredAuthRouter := paymentRouter.Group("/", middlewares.Authenticate(), middlewares.GetProfileHandler(db))
-
-	requiredAuthRouter.Route("/payment", func(router fiber.Router) {
-		router.Post("/momo", controller.MakeMomoPayment)
+	paymentRouter.Route("/payment", func(router fiber.Router) {
+		router.Get("/momo_notify", controller.MoMoReturnPayment)
+		router.Get("/momo_return", controller.MoMoNotifyPayment)
+		router.Get("/vnpay_return", controller.VnpayReturnPayment)
 	})
 
-	paymentRouter.Route("/payment", func(router fiber.Router) {
-		router.Get("/momonotify", controller.MoMoReturnPayment)
-		router.Get("/momoreturn", controller.MoMoNotifyPayment)
+	paymentRouter.Group("/payment", middlewares.Authenticate(), middlewares.GetProfileHandler(db)).Route("/", func(router fiber.Router) {
+		router.Post("/momo", controller.MakeMomoPayment)
+		router.Post("/vnpay", controller.MakeVNPayPayment)
 	})
 
 	return paymentRouter
