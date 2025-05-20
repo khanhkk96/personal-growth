@@ -36,6 +36,7 @@ func main() {
 		&models.Plan{},
 		&models.Schedule{},
 		&models.Article{},
+		&models.Payment{},
 	)
 
 	app := fiber.New(fiber.Config{

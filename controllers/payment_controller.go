@@ -1,17 +1,12 @@
 package controllers
 
 import (
-	"net/url"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
 	"personal-growth/helpers"
 	service_interfaces "personal-growth/services/interfaces"
-	"personal-growth/utils"
-	"sort"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/spf13/viper"
 )
 
 type PaymentController struct {
@@ -115,39 +110,17 @@ func (controller *PaymentController) MakeVNPayPayment(ctx *fiber.Ctx) error {
 // @Success      200 {object} responses.Response
 // @Router 		/api/payment/vnpay_return [get]
 func (controller *PaymentController) VnpayReturnPayment(ctx *fiber.Ctx) error {
-	query := ctx.Request().URI().QueryArgs()
-	vnpParams := make(map[string]string)
+	var request requests.PaymentResultRequest
 
-	query.VisitAll(func(k, v []byte) {
-		key := string(k)
-		val := string(v)
-		if key != "vnp_SecureHash" && key != "vnp_SecureHashType" {
-			vnpParams[key] = val
-		}
-	})
-
-	// Tạo chuỗi hash
-	keys := make([]string, 0, len(vnpParams))
-	for k := range vnpParams {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	var hashData strings.Builder
-	for i, k := range keys {
-		if i > 0 {
-			hashData.WriteString("&")
-		}
-		hashData.WriteString(k + "=" + url.QueryEscape(vnpParams[k]))
+	if err := ctx.QueryParser(&request); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
-	println(hashData.String())
-
-	secureHash := string(query.Peek("vnp_SecureHash"))
-	vnp_HashSecret := viper.GetString("VNP_HASHSECRET")
-	myHash := utils.CreateVNPayHash(vnp_HashSecret, hashData.String())
-	println(secureHash)
-	println(myHash)
+	if err := controller.service.SaveVNPayTransaction(request); err != nil {
+		return ctx.Status(err.Code).JSON(err.Message)
+	}
 
 	return ctx.Status(200).JSON("OK")
 }

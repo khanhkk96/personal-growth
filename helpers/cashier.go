@@ -34,7 +34,7 @@ type MoMoPayload struct {
 	Lang        string `json:"lang"`
 }
 
-func PayViaMoMo(amountV int64, description string) (string, error) {
+func PayViaQRMoMo(amountV int64, description string) (string, error) {
 	flake := sonyflake.NewSonyflake(sonyflake.Settings{})
 	a, _ := flake.NextID()
 	b, err := flake.NextID()
@@ -55,7 +55,7 @@ func PayViaMoMo(amountV int64, description string) (string, error) {
 	redirectUrl := fmt.Sprintf("%s/api/payment/momo_return", viper.GetString("API_SERVER_ADDRESS"))
 	ipnUrl := fmt.Sprintf("%s/api/payment/momo_notify", viper.GetString("API_SERVER_ADDRESS"))
 	requestType := "captureWallet"
-	extraData := ""
+	extraData := fmt.Sprintf("email=%s", viper.GetString("EMAIL_ADDRESS"))
 
 	// Raw signature string
 	rawSignature := fmt.Sprintf("accessKey=%s&amount=%s&extraData=%s&ipnUrl=%s&orderId=%s&orderInfo=%s&partnerCode=%s&redirectUrl=%s&requestId=%s&requestType=%s",
@@ -100,6 +100,123 @@ func PayViaMoMo(amountV int64, description string) (string, error) {
 	// fmt.Printf("Response::::%v", requestRes)
 
 	return requestRes["payUrl"].(string), nil
+}
+
+type Payload struct {
+	PartnerCode  string `json:"partnerCode"`
+	AccessKey    string `json:"accessKey"`
+	RequestID    string `json:"requestId"`
+	Amount       string `json:"amount"`
+	OrderID      string `json:"orderId"`
+	OrderInfo    string `json:"orderInfo"`
+	PartnerName  string `json:"partnerName"`
+	StoreId      string `json:"storeId"`
+	OrderGroupId string `json:"orderGroupId"`
+	Lang         string `json:"lang"`
+	AutoCapture  bool   `json:"autoCapture"`
+	RedirectUrl  string `json:"redirectUrl"`
+	IpnUrl       string `json:"ipnUrl"`
+	ExtraData    string `json:"extraData"`
+	RequestType  string `json:"requestType"`
+	Signature    string `json:"signature"`
+}
+
+func PayViaMoMoLink(amountV int64, description string) (string, error) {
+
+	endpoint := viper.GetString("MOMO_URL")
+	partnerCode := viper.GetString("MOMO_PARTNER_CODE")
+	accessKey := viper.GetString("MOMO_ACCESS_KEY")
+	secretKey := viper.GetString("MOMO_SECRET_KEY")
+
+	amount := strconv.FormatInt(amountV, 10)
+	orderInfo := description
+	redirectUrl := fmt.Sprintf("%s/api/payment/momo_return", viper.GetString("API_SERVER_ADDRESS"))
+	ipnUrl := fmt.Sprintf("%s/api/payment/momo_notify", viper.GetString("API_SERVER_ADDRESS"))
+	extraData := fmt.Sprintf("email=%s", viper.GetString("EMAIL_ADDRESS"))
+
+	flake := sonyflake.NewSonyflake(sonyflake.Settings{})
+	//randome orderID and requestID
+	a, _ := flake.NextID()
+	b, _ := flake.NextID()
+
+	var orderId = strconv.FormatUint(a, 16)
+	var requestId = strconv.FormatUint(b, 16)
+	var partnerName = "MoMo Payment"
+	var storeId = "Test Store"
+	var orderGroupId = ""
+	var autoCapture = true
+	var lang = "vi"
+	var requestType = "payWithMethod"
+
+	// rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId \
+	//            + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl\
+	//            + "&requestId=" + requestId + "&requestType=" + requestType
+
+	//build raw signature
+	var rawSignature bytes.Buffer
+	rawSignature.WriteString("accessKey=")
+	rawSignature.WriteString(accessKey)
+	rawSignature.WriteString("&amount=")
+	rawSignature.WriteString(amount)
+	rawSignature.WriteString("&extraData=")
+	rawSignature.WriteString(extraData)
+	rawSignature.WriteString("&ipnUrl=")
+	rawSignature.WriteString(ipnUrl)
+	rawSignature.WriteString("&orderId=")
+	rawSignature.WriteString(orderId)
+	rawSignature.WriteString("&orderInfo=")
+	rawSignature.WriteString(orderInfo)
+	rawSignature.WriteString("&partnerCode=")
+	rawSignature.WriteString(partnerCode)
+	rawSignature.WriteString("&redirectUrl=")
+	rawSignature.WriteString(redirectUrl)
+	rawSignature.WriteString("&requestId=")
+	rawSignature.WriteString(requestId)
+	rawSignature.WriteString("&requestType=")
+	rawSignature.WriteString(requestType)
+
+	signature := utils.CreateMoMoSignature(rawSignature.String(), secretKey)
+
+	var payload = Payload{
+		PartnerCode:  partnerCode,
+		AccessKey:    accessKey,
+		RequestID:    requestId,
+		Amount:       amount,
+		RequestType:  requestType,
+		RedirectUrl:  redirectUrl,
+		IpnUrl:       ipnUrl,
+		OrderID:      orderId,
+		StoreId:      storeId,
+		PartnerName:  partnerName,
+		OrderGroupId: orderGroupId,
+		AutoCapture:  autoCapture,
+		Lang:         lang,
+		OrderInfo:    orderInfo,
+		ExtraData:    extraData,
+		Signature:    signature,
+	}
+
+	var jsonPayload []byte
+	var err error
+	jsonPayload, err = json.Marshal(payload)
+	if err != nil {
+		log.Println(err)
+	}
+	// fmt.Println("Payload: " + string(jsonPayload))
+	// fmt.Println("Signature: " + signature)
+
+	//send HTTP to momo endpoint
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	//result
+	var result map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&result)
+	// fmt.Println("Response from Momo: ", result)
+
+	return result["payUrl"].(string), nil
 }
 
 func PayViaVNPay(amountV int64, description string) (string, error) {
