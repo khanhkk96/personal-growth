@@ -29,7 +29,7 @@ func NewPaymentServiceImpl(repository repositories.PaymentRepository, validate *
 
 // createMoMoPayment implements service_interfaces.PaymentService.
 func (p *PaymentServiceImpl) CreateMoMoPayment(request requests.PaymentRequest) (string, *fiber.Error) {
-	url, err := helpers.PayViaMoMoLink(request.Amount, request.Description)
+	url, err := helpers.PayViaQRMoMo(request.Amount, request.Description)
 	if err != nil {
 		return "", fiber.NewError(fiber.StatusBadRequest, "Make a payment by MOMO unsuccessfully")
 	}

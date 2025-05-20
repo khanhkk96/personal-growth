@@ -56,8 +56,8 @@ func (controller *PaymentController) MakeMomoPayment(ctx *fiber.Ctx) error {
 // @Success      200 {object} responses.Response
 // @Router 		/api/payment/momo_return [get]
 func (controller *PaymentController) MoMoReturnPayment(ctx *fiber.Ctx) error {
-	println(ctx)
-	println(ctx.Response())
+	println("MoMoReturnPayment:::::")
+	println(ctx.Request().URI().QueryArgs().String())
 	return ctx.Status(200).JSON("")
 }
 
@@ -69,7 +69,8 @@ func (controller *PaymentController) MoMoReturnPayment(ctx *fiber.Ctx) error {
 // @Success      200 {object} responses.Response
 // @Router 		/api/payment/momo_notify [get]
 func (controller *PaymentController) MoMoNotifyPayment(ctx *fiber.Ctx) error {
-	println(ctx.Response())
+	println("MoMoNotifyPayment:::::")
+	println(ctx.Request().URI().QueryArgs().String())
 	return ctx.Status(200).JSON("")
 }
 

@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type MoMoPayload struct {
+type MoMoQRPayload struct {
 	PartnerCode string `json:"partnerCode"`
 	AccessKey   string `json:"accessKey"`
 	RequestID   string `json:"requestId"`
@@ -63,7 +63,7 @@ func PayViaQRMoMo(amountV int64, description string) (string, error) {
 
 	signature := utils.CreateMoMoSignature(rawSignature, secretKey)
 
-	payload := MoMoPayload{
+	payload := MoMoQRPayload{
 		PartnerCode: partnerCode,
 		AccessKey:   accessKey,
 		RequestID:   requestId,
@@ -102,7 +102,7 @@ func PayViaQRMoMo(amountV int64, description string) (string, error) {
 	return requestRes["payUrl"].(string), nil
 }
 
-type Payload struct {
+type MomoPayLinkPayload struct {
 	PartnerCode  string `json:"partnerCode"`
 	AccessKey    string `json:"accessKey"`
 	RequestID    string `json:"requestId"`
@@ -148,10 +148,6 @@ func PayViaMoMoLink(amountV int64, description string) (string, error) {
 	var lang = "vi"
 	var requestType = "payWithMethod"
 
-	// rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId \
-	//            + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl\
-	//            + "&requestId=" + requestId + "&requestType=" + requestType
-
 	//build raw signature
 	var rawSignature bytes.Buffer
 	rawSignature.WriteString("accessKey=")
@@ -177,7 +173,7 @@ func PayViaMoMoLink(amountV int64, description string) (string, error) {
 
 	signature := utils.CreateMoMoSignature(rawSignature.String(), secretKey)
 
-	var payload = Payload{
+	var payload = MomoPayLinkPayload{
 		PartnerCode:  partnerCode,
 		AccessKey:    accessKey,
 		RequestID:    requestId,
@@ -248,7 +244,7 @@ func PayViaVNPay(amountV int64, description string) (string, error) {
 		"vnp_OrderType":  "other",
 		"vnp_Locale":     "vn",
 		"vnp_ReturnUrl":  vnp_ReturnUrl,
-		"vnp_IpAddr":     "127.0.0.1",
+		"vnp_IpAddr":     viper.GetString("SERVER_IP"),
 		"vnp_CreateDate": now.Format("20060102150405"),
 		"vnp_ExpireDate": now.Add(time.Duration(time.Minute * 10)).Format("20060102150405"),
 		"vnp_TxnRef":     txnRef,
