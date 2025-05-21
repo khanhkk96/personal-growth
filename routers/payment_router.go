@@ -12,8 +12,8 @@ func NewPaymentRouter(controller *controllers.PaymentController, db *gorm.DB) *f
 	paymentRouter := fiber.New()
 
 	paymentRouter.Route("/payment", func(router fiber.Router) {
-		router.Get("/momo_notify", controller.MoMoReturnPayment)
-		router.Get("/momo_return", controller.MoMoNotifyPayment)
+		router.Get("/momo_notify", controller.MoMoNotifyPayment)
+		router.Get("/momo_return", controller.MoMoReturnPayment)
 		router.Get("/vnpay_return", controller.VnpayReturnPayment)
 	})
 

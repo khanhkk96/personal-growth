@@ -50,7 +50,7 @@ func (p *PaymentServiceImpl) CreateVNPayPayment(request requests.PaymentRequest)
 	return url, nil
 }
 
-func (p *PaymentServiceImpl) SaveVNPayTransaction(data requests.PaymentResultRequest) *fiber.Error {
+func (p *PaymentServiceImpl) SaveVNPayTransaction(data requests.VNPayPaymentResultRequest) *fiber.Error {
 	if data.TransactionStatus != "00" {
 		return fiber.NewError(fiber.StatusBadRequest, "Transaction is not paid")
 	}
@@ -68,7 +68,31 @@ func (p *PaymentServiceImpl) SaveVNPayTransaction(data requests.PaymentResultReq
 	cerr := p.repository.Create(payment)
 	if cerr != nil {
 		log.Println("Error: ", cerr, data)
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to save new payment")
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to save new vnpay payment")
+	}
+
+	return nil
+}
+
+func (p *PaymentServiceImpl) SaveMomoTransaction(data requests.MomoPaymentResultRequest) *fiber.Error {
+	if data.ResponseCode != "0" {
+		return fiber.NewError(fiber.StatusBadRequest, "Transaction is not paid")
+	}
+
+	parsedTime, err := time.Parse("20060102150405", data.PayDate)
+	helpers.ErrorPanic(err)
+
+	payment := &models.Payment{}
+	copier.Copy(payment, data)
+	payment.TransactionStatus = "success"
+	payment.PayDate = parsedTime
+	payment.Amount = data.Amount / 100
+	payment.PayBy = "momo"
+
+	cerr := p.repository.Create(payment)
+	if cerr != nil {
+		log.Println("Error: ", cerr, data)
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to save new momo payment")
 	}
 
 	return nil

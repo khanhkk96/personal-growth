@@ -8,6 +8,7 @@ import (
 	"personal-growth/configs"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
+	"personal-growth/handlers"
 	"personal-growth/helpers"
 	"personal-growth/models"
 	"personal-growth/repositories"
@@ -54,8 +55,18 @@ func (n *AuthServiceImpl) Login(data requests.LoginRequest) (*responses.LoginRes
 
 	// generate access token
 	config, _ := configs.LoadConfig(".")
-	token, rf, err := utils.GenerateTokens(config.TokenExpiredIn, user.Id, config.TokenSecret, config.RefreshTokenSecret)
+	refreshExpiredIn, perr := utils.ParseDurationFromEnv(config.RefreshTokenMaxAge)
+	helpers.ErrorPanic(perr)
+
+	token, rf, err := utils.GenerateTokens(config.TokenExpiredIn, user.Id, config.TokenSecret, refreshExpiredIn, config.RefreshTokenSecret)
 	helpers.ErrorPanic(err)
+
+	// delete old tokens
+	rdb := handlers.NewRedis()
+	if rdb != nil {
+		rdb.SetVal(fmt.Sprintf("actoken_%s_%s", user.Id, rf[len(rf)-6:]), token, 0)
+		rdb.SetVal(fmt.Sprintf("rftoken_%s_%s", user.Id, rf[len(rf)-6:]), rf, 0)
+	}
 
 	return &responses.LoginResponse{
 		AccessToken:  token,
@@ -77,6 +88,12 @@ func (n *AuthServiceImpl) RefreshAccessToken(refreshToken string) (string, *fibe
 	newAccessToken, err := utils.GenerateAccessToken(config.TokenExpiredIn, userID, config.TokenSecret)
 	if err != nil {
 		return "", fiber.NewError(fiber.StatusInternalServerError, "Could not create access token")
+	}
+
+	// Lưu access token mới vào Redis
+	rdb := handlers.NewRedis()
+	if rdb != nil {
+		rdb.SetVal(fmt.Sprintf("actoken_%s_%s", userID, refreshToken[len(refreshToken)-6:]), newAccessToken, 0)
 	}
 
 	return newAccessToken, nil
@@ -278,6 +295,12 @@ func (n *AuthServiceImpl) ChangePassword(data requests.ChangePasswordRequest, us
 		return fiber.NewError(fiber.StatusInternalServerError, "Change password unsuccessfully")
 	}
 
+	// delete old tokens
+	rdb := handlers.NewRedis()
+	if rdb != nil {
+		rdb.DeleteUserToken(user.Id.String())
+	}
+
 	return nil
 }
 
@@ -306,6 +329,12 @@ func (n *AuthServiceImpl) SetNewPassword(data requests.SetNewPasswordRequest) *f
 		return fiber.NewError(fiber.StatusInternalServerError, "Change password unsuccessfully")
 	}
 
+	// delete old tokens
+	rdb := handlers.NewRedis()
+	if rdb != nil {
+		rdb.DeleteUserToken(user.Id.String())
+	}
+
 	return nil
 }
 
@@ -318,6 +347,20 @@ func (n *AuthServiceImpl) UploadAvatar(file string, user *models.User) *fiber.Er
 	user.Avatar = sql.NullString{String: file, Valid: true}
 	if uerr := n.repository.Update(user); uerr != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Upload avatar unsuccessfully")
+	}
+
+	return nil
+}
+
+func (n *AuthServiceImpl) Logout(uid string, refreshToken string) *fiber.Error {
+	if uid == "" || refreshToken == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid user data")
+	}
+
+	// delete old tokens
+	rdb := handlers.NewRedis()
+	if rdb != nil {
+		rdb.DeleteOneDevice(uid, refreshToken)
 	}
 
 	return nil

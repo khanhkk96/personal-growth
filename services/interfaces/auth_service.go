@@ -19,4 +19,5 @@ type AuthService interface {
 	ResendOtp(email string) *fiber.Error
 	SetNewPassword(data requests.SetNewPasswordRequest) *fiber.Error
 	UploadAvatar(file string, user *models.User) *fiber.Error
+	Logout(uid string, refreshToken string) *fiber.Error
 }

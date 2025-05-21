@@ -9,6 +9,6 @@ import (
 type PaymentService interface {
 	CreateMoMoPayment(request requests.PaymentRequest) (string, *fiber.Error)
 	CreateVNPayPayment(request requests.PaymentRequest) (string, *fiber.Error)
-	// SaveMoMoTransaction(request requests.MoMoTransactionRequest) (string, *fiber.Error)
-	SaveVNPayTransaction(data requests.PaymentResultRequest) *fiber.Error
+	SaveMomoTransaction(data requests.MomoPaymentResultRequest) *fiber.Error
+	SaveVNPayTransaction(data requests.VNPayPaymentResultRequest) *fiber.Error
 }

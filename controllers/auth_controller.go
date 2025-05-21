@@ -54,7 +54,7 @@ func (controller *AuthController) Login(ctx *fiber.Ctx) error {
 		Code:    200,
 		Status:  "Ok",
 		Message: "Login successfully",
-		Data:    tokens,
+		Data:    tokens.AccessToken,
 	}
 	return ctx.Status(fiber.StatusCreated).JSON(webResponse)
 }
@@ -332,4 +332,24 @@ func (controller *AuthController) UploadAvatar(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(webResponse)
+}
+
+// @Summary      Logout
+// @Description  Logout user
+// @Tags         Auth
+// @Security 	 BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} responses.UserResponse
+// @Router       /api/auth/logout [GET]
+func (controller *AuthController) Logout(ctx *fiber.Ctx) error {
+	user := ctx.Locals("user").(*models.User)
+	refreshToken := ctx.Cookies("refresh_token")
+
+	err := controller.service.Logout(user.Id.String(), refreshToken)
+	if err != nil {
+		return ctx.Status(err.Code).JSON(err.Message)
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON("Logout successfully")
 }

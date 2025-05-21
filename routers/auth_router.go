@@ -25,6 +25,7 @@ func NewAuthRouter(controller *controllers.AuthController, db *gorm.DB) *fiber.A
 
 	authRouter.Group("/auth", middlewares.Authenticate(), middlewares.GetProfileHandler(db)).Route("/", func(router fiber.Router) {
 		router.Get("/me", controller.Me)
+		router.Get("/logout", controller.Logout)
 		router.Post("/change-password", controller.ChangePassword)
 		router.Post("/upload-avatar", middlewares.UploadFileHandlder(middlewares.UploadFileOptions{
 			AllowedTypes: constants.ImageFileTypes,

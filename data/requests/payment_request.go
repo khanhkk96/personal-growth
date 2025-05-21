@@ -5,7 +5,7 @@ type PaymentRequest struct {
 	Description string `json:"description"`
 }
 
-type PaymentResultRequest struct {
+type VNPayPaymentResultRequest struct {
 	Amount            int64  `query:"vnp_Amount"`
 	BankCode          string `query:"vnp_BankCode"`
 	BankTransactionNo string `query:"vnp_BankTranNo"`
@@ -17,4 +17,20 @@ type PaymentResultRequest struct {
 	TransactionNo     string `query:"vnp_TransactionNo"`
 	TransactionStatus string `query:"vnp_TransactionStatus"`
 	TxnRef            string `query:"vnp_TxnRef"`
+}
+
+type MomoPaymentResultRequest struct {
+	PartnerCode       string `query:"partnerCode"`
+	OrderId           string `query:"orderId"`
+	Amount            int64  `query:"amount"`
+	OrderInfo         string `query:"orderInfo"`
+	OrderType         string `query:"orderType"`
+	TransactionNo     string `query:"transId"`
+	ResponseCode      string `query:"resultCode"`
+	TransactionStatus string `query:"message"`
+	Type              string `query:"payType"`
+	PayDate           string `query:"responseTime"`
+	// Signature string `query:"signature"`
+	// BankCode          string `query:"bankCode"`
+	// BankTransactionNo string `query:"bankTransId"`
 }

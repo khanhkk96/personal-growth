@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"fmt"
+	"personal-growth/handlers"
 	"personal-growth/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -29,6 +31,18 @@ func Authenticate() fiber.Handler {
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid claims"})
+		}
+
+		rdb := handlers.NewRedis()
+		rfToken := c.Cookies("refresh_token")
+		val, _ := rdb.GetVal(fmt.Sprintf("actoken_%s_%s", claims["sub"], rfToken[len(rfToken)-6:]))
+		// if rdserr != nil {
+		// 	fmt.Printf("Can not get access token: %v", rdserr)
+		// 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Internal server error"})
+		// }
+
+		if val != tokenStr {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid access token"})
 		}
 
 		// Gắn user_id vào context để dùng trong handler

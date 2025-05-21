@@ -56,9 +56,18 @@ func (controller *PaymentController) MakeMomoPayment(ctx *fiber.Ctx) error {
 // @Success      200 {object} responses.Response
 // @Router 		/api/payment/momo_return [get]
 func (controller *PaymentController) MoMoReturnPayment(ctx *fiber.Ctx) error {
-	println("MoMoReturnPayment:::::")
-	println(ctx.Request().URI().QueryArgs().String())
-	return ctx.Status(200).JSON("")
+	request := requests.MomoPaymentResultRequest{}
+	if err := ctx.QueryParser(&request); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	if err := controller.service.SaveMomoTransaction(request); err != nil {
+		return ctx.Status(err.Code).JSON(err.Message)
+	}
+
+	return ctx.Status(200).JSON("OK")
 }
 
 // @Summary 	Get momo payment notification
@@ -71,6 +80,7 @@ func (controller *PaymentController) MoMoReturnPayment(ctx *fiber.Ctx) error {
 func (controller *PaymentController) MoMoNotifyPayment(ctx *fiber.Ctx) error {
 	println("MoMoNotifyPayment:::::")
 	println(ctx.Request().URI().QueryArgs().String())
+
 	return ctx.Status(200).JSON("")
 }
 
@@ -111,7 +121,7 @@ func (controller *PaymentController) MakeVNPayPayment(ctx *fiber.Ctx) error {
 // @Success      200 {object} responses.Response
 // @Router 		/api/payment/vnpay_return [get]
 func (controller *PaymentController) VnpayReturnPayment(ctx *fiber.Ctx) error {
-	var request requests.PaymentResultRequest
+	var request requests.VNPayPaymentResultRequest
 
 	if err := ctx.QueryParser(&request); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{

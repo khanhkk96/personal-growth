@@ -18,7 +18,7 @@ type Config struct {
 	//authentication
 	TokenSecret        string        `mapstructure:"TOKEN_SECRET"`
 	TokenExpiredIn     time.Duration `mapstructure:"TOKEN_EXPIRED_IN"`
-	TokenMaxAge        int           `mapstructure:"TOKEN_MAX_AGE"`
+	RefreshTokenMaxAge string        `mapstructure:"REFRESH_TOKEN_MAX_AGE"`
 	RefreshTokenSecret string        `mapstructure:"REFRESH_TOKEN_SECRET"`
 	//email
 	EmailAddress  string `mapstructure:"EMAIL_ADDRESS"`

@@ -12,6 +12,7 @@ require (
 	github.com/google/wire v0.6.0
 	github.com/jinzhu/copier v0.4.0
 	github.com/pkg/errors v0.9.1
+	github.com/redis/go-redis/v9 v9.8.0
 	github.com/sony/sonyflake v1.2.1
 	github.com/spf13/viper v1.15.0
 	github.com/swaggo/fiber-swagger v1.3.0
@@ -25,6 +26,8 @@ require (
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect

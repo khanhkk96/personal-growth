@@ -24,7 +24,7 @@ func GenerateAccessToken(ttl time.Duration, payload interface{}, secretKey strin
 	tokenString, err := token.SignedString([]byte(secretKey))
 
 	if err != nil {
-		return "", fmt.Errorf("Generate JWT token failed: %w", err)
+		return "", fmt.Errorf("generate JWT token failed: %w", err)
 	}
 
 	return tokenString, nil
@@ -33,27 +33,26 @@ func GenerateAccessToken(ttl time.Duration, payload interface{}, secretKey strin
 func VerifyToken(token string, signedJWTKey string) (interface{}, error) {
 	tok, err := jwt.Parse(token, func(jwtToken *jwt.Token) (interface{}, error) {
 		if _, ok := jwtToken.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected method: %s", jwtToken.Header["alg"])
+			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
 		}
 
 		return []byte(signedJWTKey), nil
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("Invalid token: %w", err)
+		return nil, fmt.Errorf("invalid token: %w", err)
 	}
 
 	claims, ok := tok.Claims.(jwt.MapClaims)
 
 	if !ok || !tok.Valid {
-		return nil, fmt.Errorf("Invalid token claim")
+		return nil, fmt.Errorf("invalid token claim")
 	}
 
 	return claims["sub"], nil
 }
 
-func GenerateTokens(ttl time.Duration, payload interface{}, secretKey string, rfKey string) (string, string, error) {
-	// Access token (expires in 15 mins)
+func GenerateTokens(ttl time.Duration, payload interface{}, secretKey string, rfTtl time.Duration, rfKey string) (string, string, error) {
 	accessClaims := jwt.MapClaims{
 		"sub": payload,
 		"iat": time.Now().Unix(),
@@ -69,7 +68,7 @@ func GenerateTokens(ttl time.Duration, payload interface{}, secretKey string, rf
 	refreshClaims := jwt.MapClaims{
 		"sub": payload,
 		"iat": time.Now().Unix(),
-		"exp": time.Now().Add(7 * 24 * time.Hour).Unix(),
+		"exp": time.Now().Add(rfTtl).Unix(),
 	}
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
 	refreshString, err := refreshToken.SignedString([]byte(rfKey))
