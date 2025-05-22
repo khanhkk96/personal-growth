@@ -87,6 +87,10 @@ func UploadMultiFilesHandlder(options UploadFileOptions) fiber.Handler {
 		options.FileSize = 5
 	}
 
+	if options.MaximumFileCount == 0 {
+		options.MaximumFileCount = 5
+	}
+
 	return func(c *fiber.Ctx) error {
 		// Lấy file
 		form, err := c.MultipartForm()

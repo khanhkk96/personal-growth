@@ -46,6 +46,8 @@ func (i *IssueServiceImpl) Add(data requests.CreateOrUpdateIssueRequest, files [
 	}
 
 	issue = &models.Issue{}
+	// copy data from request to issue
+	copier.Copy(issue, data)
 
 	if !utils.IsEmpty(&data.ProjectId) {
 		var project models.Project
@@ -54,13 +56,16 @@ func (i *IssueServiceImpl) Add(data requests.CreateOrUpdateIssueRequest, files [
 			return nil, fiber.NewError(fiber.StatusBadRequest, "Project not found")
 		}
 		issue.Project = project
+	} else {
+		issue.ProjectId = sql.NullString{
+			String: "",
+			Valid:  false,
+		}
 	}
 
-	// copy data from request to issue
-	copier.Copy(issue, data)
 	issue.CreatedById = user.Id
 	if len(files) > 0 {
-		issue.Images = sql.NullString{
+		issue.Files = sql.NullString{
 			String: strings.Join(files, ","),
 			Valid:  true,
 		}
@@ -168,6 +173,9 @@ func (i *IssueServiceImpl) Update(id string, data requests.CreateOrUpdateIssueRe
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Issue not found")
 	}
 
+	// copy data from request to issue
+	copier.Copy(issue, data)
+
 	if !utils.IsEmpty(&data.ProjectId) {
 		var project models.Project
 		err := i.repository.GetDataSource().First(&project, "id = ?", data.ProjectId).Error
@@ -175,12 +183,15 @@ func (i *IssueServiceImpl) Update(id string, data requests.CreateOrUpdateIssueRe
 			return nil, fiber.NewError(fiber.StatusBadRequest, "Project not found")
 		}
 		issue.Project = project
+	} else {
+		issue.ProjectId = sql.NullString{
+			String: "",
+			Valid:  false,
+		}
 	}
 
-	// copy data from request to issue
-	copier.Copy(issue, data)
 	if len(files) > 0 {
-		issue.Images = sql.NullString{
+		issue.Files = sql.NullString{
 			String: strings.Join(files, ","),
 			Valid:  true,
 		}

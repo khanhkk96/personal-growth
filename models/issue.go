@@ -9,7 +9,7 @@ type Issue struct {
 	BaseModel
 	Name        string              `gorm:"type:string; not null; unique"`
 	Description sql.NullString      `gorm:"type:text"`
-	Images      sql.NullString      `gorm:"type:string"`
+	Files       sql.NullString      `gorm:"type:string"`
 	ProjectId   sql.NullString      `gorm:"type:uuid"`
 	Project     Project             `gorm:"foreignKey:ProjectId"`
 	Status      enums.IssueStatus   `gorm:"type:string; not null; default='pending'"`

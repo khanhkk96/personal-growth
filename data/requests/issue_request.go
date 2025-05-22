@@ -6,14 +6,14 @@ import (
 )
 
 type CreateOrUpdateIssueRequest struct {
-	Name        string              `json:"name" validate:"required,min=6,max=256"`
-	Description string              `json:"description" validate:"max=500,omitempty"`
-	ProjectId   string              `json:"project_id" validate:"omitempty"`
-	Status      enums.IssueStatus   `json:"status" validate:"issue_status_enum"`
-	Priority    enums.IssuePriority `json:"priority" validate:"issue_priority_enum"`
-	IssuedAt    *time.Time          `json:"issued_at"`
-	NeedToSolve int                 `json:"need_to_solve"`
-	References  string              `json:"references" validate:"max:500,omitempty"`
+	Name        string              `form:"name" validate:"required,min=6,max=256"`
+	Description string              `form:"description" validate:"max=500,omitempty"`
+	ProjectId   string              `form:"project_id"`
+	Status      enums.IssueStatus   `form:"status" validate:"required,issue_status_enum"`
+	Priority    enums.IssuePriority `form:"priority" validate:"required,issue_priority_enum"`
+	IssuedAt    *time.Time          `form:"issued_at"`
+	NeedToSolve *int                `form:"need_to_solve"`
+	References  string              `form:"references" validate:"max=500,omitempty"`
 }
 
 type IssueFilters struct {

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"personal-growth/common/enums"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
@@ -26,9 +27,10 @@ func NewIssueController(service service_interfaces.IssueService) *IssueControlle
 // @Description Add new issue
 // @Tags 		Issue
 // @Security  	BearerAuth
-// @Accept 		json
 // @Produce 	json
-// @Param 		issue body requests.CreateOrUpdateIssueRequest true "Issue Info"
+// @Accept 		multipart/form-data
+// @Param 		issue formData requests.CreateOrUpdateIssueRequest false "Issue Info"
+// @Param 		files formData []file false "File to upload"
 // @Success 	200 {object} responses.IssueResponse
 // @Router 		/api/issue [post]
 func (controller *IssueController) AddNewIssue(ctx *fiber.Ctx) error {
@@ -38,6 +40,7 @@ func (controller *IssueController) AddNewIssue(ctx *fiber.Ctx) error {
 	request := requests.CreateOrUpdateIssueRequest{}
 	err := ctx.BodyParser(&request)
 	helpers.ErrorPanic(err)
+	fmt.Printf("issue::%v", request)
 
 	issue, cerr := controller.service.Add(request, files, user)
 	if cerr != nil {
@@ -58,10 +61,11 @@ func (controller *IssueController) AddNewIssue(ctx *fiber.Ctx) error {
 // @Description Update issue
 // @Tags 		Issue
 // @Security  	BearerAuth
-// @Accept 		json
 // @Produce 	json
+// @Accept 		multipart/form-data
+// @Param 		issue formData requests.CreateOrUpdateIssueRequest true "Issue Info"
+// @Param 		files formData []file true "File to upload"
 // @Param		id path string true "Issue ID"
-// @Param 		issue body requests.CreateOrUpdateIssueRequest true "Issue Info"
 // @Success 	200 {object} responses.IssueResponse
 // @Router 		/api/issue/{id} [put]
 func (controller *IssueController) UpdateIssue(ctx *fiber.Ctx) error {
