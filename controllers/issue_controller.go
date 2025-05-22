@@ -5,8 +5,8 @@ import (
 	"personal-growth/common/enums"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
+	"personal-growth/db/entities"
 	"personal-growth/helpers"
-	"personal-growth/models"
 	service_interfaces "personal-growth/services/interfaces"
 	"strconv"
 
@@ -34,7 +34,7 @@ func NewIssueController(service service_interfaces.IssueService) *IssueControlle
 // @Success 	200 {object} responses.IssueResponse
 // @Router 		/api/issue [post]
 func (controller *IssueController) AddNewIssue(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*models.User)
+	user := ctx.Locals("user").(*entities.User)
 	files := ctx.Locals("files").([]string)
 
 	request := requests.CreateOrUpdateIssueRequest{}
@@ -69,7 +69,7 @@ func (controller *IssueController) AddNewIssue(ctx *fiber.Ctx) error {
 // @Success 	200 {object} responses.IssueResponse
 // @Router 		/api/issue/{id} [put]
 func (controller *IssueController) UpdateIssue(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*models.User)
+	user := ctx.Locals("user").(*entities.User)
 	files := ctx.Locals("files").([]string)
 	id := ctx.Params("id")
 
@@ -102,7 +102,7 @@ func (controller *IssueController) UpdateIssue(ctx *fiber.Ctx) error {
 // @Success 	200 {object} responses.IssueResponse
 // @Router 		/api/issue/{id} [delete]
 func (controller *IssueController) DeleteIssue(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*models.User)
+	user := ctx.Locals("user").(*entities.User)
 	id := ctx.Params("id")
 
 	issue, cerr := controller.service.Delete(id, user)
@@ -161,7 +161,7 @@ func (controller *IssueController) GetIssueDetail(ctx *fiber.Ctx) error {
 // @Param 		priority query string false "Priority" Enums(low, medium, high)
 // @Router 		/api/issue [get]
 func (controller *IssueController) GetIssues(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*models.User)
+	user := ctx.Locals("user").(*entities.User)
 
 	var filter requests.IssueFilters
 	query := ctx.Query("q")

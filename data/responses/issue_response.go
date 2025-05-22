@@ -6,7 +6,8 @@ import (
 )
 
 type IssueResponse struct {
-	Id          string              `json:"id"`
+	BaseResponse
+	// Id          string              `json:"id"`
 	Name        string              `json:"name"`
 	Description string              `json:"description"`
 	Images      string              `json:"image"`

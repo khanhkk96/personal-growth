@@ -7,7 +7,7 @@ import (
 	"personal-growth/common/enums"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
-	"personal-growth/models"
+	"personal-growth/db/entities"
 	"personal-growth/repositories"
 	service_interfaces "personal-growth/services/interfaces"
 	"personal-growth/utils"
@@ -33,7 +33,7 @@ func NewIssueServiceImpl(repository repositories.IssueRepository, validate *vali
 }
 
 // Add implements service_interfaces.IssueService.
-func (i *IssueServiceImpl) Add(data requests.CreateOrUpdateIssueRequest, files []string, user *models.User) (*responses.IssueResponse, *fiber.Error) {
+func (i *IssueServiceImpl) Add(data requests.CreateOrUpdateIssueRequest, files []string, user *entities.User) (*responses.IssueResponse, *fiber.Error) {
 	//validate input data
 	if err := i.validate.Struct(data); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadGateway, "Invalid data")
@@ -45,12 +45,12 @@ func (i *IssueServiceImpl) Add(data requests.CreateOrUpdateIssueRequest, files [
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Issue already exists")
 	}
 
-	issue = &models.Issue{}
+	issue = &entities.Issue{}
 	// copy data from request to issue
 	copier.Copy(issue, data)
 
 	if !utils.IsEmpty(&data.ProjectId) {
-		var project models.Project
+		var project entities.Project
 		err := i.repository.GetDataSource().First(&project, "id = ?", data.ProjectId).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fiber.NewError(fiber.StatusBadRequest, "Project not found")
@@ -83,7 +83,7 @@ func (i *IssueServiceImpl) Add(data requests.CreateOrUpdateIssueRequest, files [
 }
 
 // Delete implements service_interfaces.IssueService.
-func (i *IssueServiceImpl) Delete(id string, user *models.User) (*responses.IssueResponse, *fiber.Error) {
+func (i *IssueServiceImpl) Delete(id string, user *entities.User) (*responses.IssueResponse, *fiber.Error) {
 	issue, _ := i.repository.FindByID(id)
 	if issue == nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Issue not found")
@@ -117,10 +117,10 @@ func (i *IssueServiceImpl) Detail(id string) (*responses.IssueResponse, *fiber.E
 }
 
 // List implements service_interfaces.IssueService.
-func (i *IssueServiceImpl) List(options requests.IssueFilters, user *models.User) (*responses.IssuePageResponse, *fiber.Error) {
-	var issues []models.Issue
+func (i *IssueServiceImpl) List(options requests.IssueFilters, user *entities.User) (*responses.IssuePageResponse, *fiber.Error) {
+	var issues []entities.Issue
 
-	builder := i.repository.GetDataSource().Model(&models.Issue{})
+	builder := i.repository.GetDataSource().Model(&entities.Issue{})
 
 	if !utils.IsEmpty(options.Query) {
 		queryByName := fmt.Sprintf(`%%%s%%`, *options.Query)
@@ -141,11 +141,14 @@ func (i *IssueServiceImpl) List(options requests.IssueFilters, user *models.User
 
 	var totalItem int64
 	builder.Count(&totalItem)
-	builder.Offset((options.Page - 1) * options.Limit).Limit(options.Limit).Find(&issues)
+	builder.Offset((options.Page - 1) * options.Limit).Limit(options.Limit).Preload("CreatedBy").Preload("Project").Find(&issues)
 
 	// Convert issues to []interface{}
+	// jsonS, _ := json.Marshal(issues)
+	// fmt.Println("Issues: ", string(jsonS))
 	issueResponses := make([]responses.IssueResponse, len(issues))
 	for i, issue := range issues {
+		copier.Copy(&issueResponses[i], issue.Model)
 		copier.Copy(&issueResponses[i], issue)
 	}
 
@@ -156,7 +159,7 @@ func (i *IssueServiceImpl) List(options requests.IssueFilters, user *models.User
 }
 
 // Update implements service_interfaces.IssueService.
-func (i *IssueServiceImpl) Update(id string, data requests.CreateOrUpdateIssueRequest, files []string, user *models.User) (*responses.IssueResponse, *fiber.Error) {
+func (i *IssueServiceImpl) Update(id string, data requests.CreateOrUpdateIssueRequest, files []string, user *entities.User) (*responses.IssueResponse, *fiber.Error) {
 	//validate input data
 	if err := i.validate.Struct(data); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadGateway, "Invalid data")
@@ -177,7 +180,7 @@ func (i *IssueServiceImpl) Update(id string, data requests.CreateOrUpdateIssueRe
 	copier.Copy(issue, data)
 
 	if !utils.IsEmpty(&data.ProjectId) {
-		var project models.Project
+		var project entities.Project
 		err := i.repository.GetDataSource().First(&project, "id = ?", data.ProjectId).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fiber.NewError(fiber.StatusBadRequest, "Project not found")

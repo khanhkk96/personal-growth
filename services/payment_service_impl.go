@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"personal-growth/data/requests"
+	"personal-growth/db/entities"
 	"personal-growth/helpers"
-	"personal-growth/models"
 	"personal-growth/repositories"
 	service_interfaces "personal-growth/services/interfaces"
 	"time"
@@ -58,7 +58,7 @@ func (p *PaymentServiceImpl) SaveVNPayTransaction(data requests.VNPayPaymentResu
 	parsedTime, err := time.Parse("20060102150405", data.PayDate)
 	helpers.ErrorPanic(err)
 
-	payment := &models.Payment{}
+	payment := &entities.Payment{}
 	copier.Copy(payment, data)
 	payment.TransactionStatus = "success"
 	payment.PayDate = parsedTime
@@ -82,7 +82,7 @@ func (p *PaymentServiceImpl) SaveMomoTransaction(data requests.MomoPaymentResult
 	parsedTime, err := time.Parse("20060102150405", data.PayDate)
 	helpers.ErrorPanic(err)
 
-	payment := &models.Payment{}
+	payment := &entities.Payment{}
 	copier.Copy(payment, data)
 	payment.TransactionStatus = "success"
 	payment.PayDate = parsedTime

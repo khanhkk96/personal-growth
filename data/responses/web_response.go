@@ -2,6 +2,9 @@ package responses
 
 import (
 	"math"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Response struct {
@@ -19,6 +22,14 @@ type BasePaginatedResponse[T any] struct {
 	PageCount       int  `json:"pageCount"`
 	HasPreviousPage bool `json:"hasPreviousPage"`
 	HasNextPage     bool `json:"hasNextPage"`
+}
+
+type BaseResponse struct {
+	Id          string       `json:"id"`
+	CreatedById uuid.UUID    `json:"created_by_id"`
+	CreatedBy   UserResponse `json:"created_by" type:"UserResponse"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
 }
 
 type PaginationMetaData[T any] struct {

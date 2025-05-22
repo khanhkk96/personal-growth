@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 	configs "personal-growth/configs"
+	"personal-growth/db/entities"
 	injections "personal-growth/di"
 	"personal-growth/docs"
 	"personal-growth/middlewares"
-	"personal-growth/models"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -30,13 +30,13 @@ func main() {
 	db := configs.ConnectDB(&loadConfig)
 
 	db.AutoMigrate(
-		&models.User{},
-		&models.Project{},
-		&models.Issue{},
-		&models.Plan{},
-		&models.Schedule{},
-		&models.Article{},
-		&models.Payment{},
+		&entities.User{},
+		&entities.Project{},
+		&entities.Issue{},
+		&entities.Plan{},
+		&entities.Schedule{},
+		&entities.Article{},
+		&entities.Payment{},
 	)
 
 	app := fiber.New(fiber.Config{

@@ -1,23 +1,23 @@
 package repositories
 
 import (
-	"personal-growth/models"
+	"personal-growth/db/entities"
 
 	"gorm.io/gorm"
 )
 
 type ProjectRepository interface {
-	BaseRepository[models.Project]
+	BaseRepository[entities.Project]
 }
 
 type projectRepository struct {
-	BaseRepository[models.Project]
+	BaseRepository[entities.Project]
 	db *gorm.DB
 }
 
 func NewProjectRepository(db *gorm.DB) ProjectRepository {
 	return &projectRepository{
-		BaseRepository: NewBaseRepository[models.Project](db),
+		BaseRepository: NewBaseRepository[entities.Project](db),
 		db:             db,
 	}
 }

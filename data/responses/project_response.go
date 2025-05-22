@@ -6,7 +6,8 @@ import (
 )
 
 type ProjectResponse struct {
-	Id          string              `json:"id"`
+	// Id          string              `json:"id"`
+	BaseResponse
 	Name        string              `json:"name"`
 	Type        enums.ProjectType   `json:"type"`
 	Summary     string              `json:"summary"`

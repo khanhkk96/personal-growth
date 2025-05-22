@@ -4,8 +4,8 @@ import (
 	"personal-growth/common/enums"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
+	"personal-growth/db/entities"
 	"personal-growth/helpers"
-	"personal-growth/models"
 	service_interfaces "personal-growth/services/interfaces"
 	"strconv"
 
@@ -32,7 +32,7 @@ func NewProjectController(service service_interfaces.ProjectService) *ProjectCon
 // @Success 	200 {object} responses.ProjectResponse
 // @Router 		/api/project [post]
 func (controller *ProjectController) AddNewProject(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*models.User)
+	user := ctx.Locals("user").(*entities.User)
 
 	request := requests.CreateOrUpdateProjectRequest{}
 	err := ctx.BodyParser(&request)
@@ -64,7 +64,7 @@ func (controller *ProjectController) AddNewProject(ctx *fiber.Ctx) error {
 // @Success 	200 {object} responses.ProjectResponse
 // @Router 		/api/project/{id} [put]
 func (controller *ProjectController) UpdateProject(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*models.User)
+	user := ctx.Locals("user").(*entities.User)
 	id := ctx.Params("id")
 
 	request := requests.CreateOrUpdateProjectRequest{}
@@ -96,7 +96,7 @@ func (controller *ProjectController) UpdateProject(ctx *fiber.Ctx) error {
 // @Success 	200 {object} responses.ProjectResponse
 // @Router 		/api/project/{id} [delete]
 func (controller *ProjectController) DeleteProject(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*models.User)
+	user := ctx.Locals("user").(*entities.User)
 	id := ctx.Params("id")
 
 	project, cerr := controller.service.Delete(id, user)
@@ -155,7 +155,7 @@ func (controller *ProjectController) GetProjectDetail(ctx *fiber.Ctx) error {
 // @Param 		type query string false "Type" Enums(web, desktop_app, mobile_app, library)
 // @Router 		/api/project [get]
 func (controller *ProjectController) GetProjects(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*models.User)
+	user := ctx.Locals("user").(*entities.User)
 
 	var filter requests.ProjectFilters
 	query := ctx.Query("q")
