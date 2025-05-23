@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"personal-growth/data/requests"
+	"personal-growth/data/responses"
 	"personal-growth/db/entities"
 	"personal-growth/helpers"
 	"personal-growth/repositories"
 	service_interfaces "personal-growth/services/interfaces"
+	"personal-growth/utils"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -106,4 +108,42 @@ func (p *PaymentServiceImpl) SaveMomoTransaction(data requests.MomoPaymentResult
 	}
 
 	return nil
+}
+
+func (p *PaymentServiceImpl) List(options requests.PaymentFilters) responses.PaymentPageResponse {
+	var transactions []entities.Payment
+	builder := p.repository.GetDataSource().Model(&entities.Payment{})
+
+	if !utils.IsEmpty(&options.Query) {
+		queryByName := fmt.Sprintf(`%%%s%%`, options.Query)
+		builder = builder.Where("txn_ref LIKE ? OR transaction_no LIKE ?", queryByName, queryByName)
+	}
+
+	if !utils.IsEmpty(&options.PayBy) {
+		builder = builder.Where("pay_by = ?", options.PayBy)
+	}
+
+	if options.PayFrom != nil {
+		builder = builder.Where("pay_date >= ?", *options.PayFrom)
+	}
+
+	if options.PayTo != nil {
+		builder = builder.Where("pay_date <= ?", *options.PayTo)
+	}
+
+	var totalItem int64
+	builder.Count(&totalItem)
+
+	builder.Offset((options.Page - 1) * options.Limit).Limit(options.Limit).Order(fmt.Sprintf("%s %s", options.OrderBy, options.Order)).Find(&transactions)
+
+	// Convert projects to []interface{}
+	paymentResponses := make([]responses.PaymentResponse, len(transactions))
+	for i, tran := range transactions {
+		copier.Copy(&paymentResponses[i], tran.Model)
+		copier.Copy(&paymentResponses[i], tran)
+	}
+
+	metadata := responses.NewPaginationMetaData(options.Page, options.Limit, int(totalItem), paymentResponses)
+
+	return responses.NewPaginatedResponse(metadata)
 }

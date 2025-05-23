@@ -18,6 +18,6 @@ type CreateOrUpdateProjectRequest struct {
 
 type ProjectFilters struct {
 	BaseRequest
-	Status *enums.ProjectStatus `json:"status" validate:"project_status_enum"`
-	Type   *enums.ProjectType   `json:"type" validate:"project_type_enum"`
+	Status *enums.ProjectStatus `query:"status" validate:"project_status_enum"`
+	Type   *enums.ProjectType   `query:"type" validate:"project_type_enum"`
 }

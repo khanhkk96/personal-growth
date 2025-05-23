@@ -120,14 +120,14 @@ func (i *IssueServiceImpl) Detail(id string) (*responses.IssueResponse, *fiber.E
 }
 
 // List implements service_interfaces.IssueService.
-func (i *IssueServiceImpl) List(options requests.IssueFilters, user *entities.User) (*responses.IssuePageResponse, *fiber.Error) {
+func (i *IssueServiceImpl) List(options requests.IssueFilters, user *entities.User) responses.IssuePageResponse {
 	var issues []entities.Issue
 
 	builder := i.repository.GetDataSource().Model(&entities.Issue{})
 
-	if !utils.IsEmpty(options.Query) {
-		queryByName := fmt.Sprintf(`%%%s%%`, *options.Query)
-		builder = builder.Where("name LIKE ? OR stack LIKE ?", queryByName, queryByName)
+	if !utils.IsEmpty(&options.Query) {
+		queryByName := fmt.Sprintf(`%%%s%%`, options.Query)
+		builder = builder.Where("name LIKE ? OR description LIKE ?", queryByName, queryByName)
 	}
 
 	if !utils.IsEmpty((*string)(options.Status)) {
@@ -144,11 +144,8 @@ func (i *IssueServiceImpl) List(options requests.IssueFilters, user *entities.Us
 
 	var totalItem int64
 	builder.Count(&totalItem)
-	builder.Offset((options.Page - 1) * options.Limit).Limit(options.Limit).Preload("CreatedBy").Preload("Project").Find(&issues)
+	builder.Offset((options.Page - 1) * options.Limit).Limit(options.Limit).Order(fmt.Sprintf("%s %s", options.OrderBy, options.Order)).Preload("CreatedBy").Preload("Project").Find(&issues)
 
-	// Convert issues to []interface{}
-	// jsonS, _ := json.Marshal(issues)
-	// fmt.Println("Issues: ", string(jsonS))
 	issueResponses := make([]responses.IssueResponse, len(issues))
 	for i, issue := range issues {
 		copier.Copy(&issueResponses[i], issue.Model)
@@ -156,9 +153,8 @@ func (i *IssueServiceImpl) List(options requests.IssueFilters, user *entities.Us
 	}
 
 	metadata := responses.NewPaginationMetaData(options.Page, options.Limit, int(totalItem), issueResponses)
-	data := responses.NewPaginatedResponse(metadata)
 
-	return &data, nil
+	return responses.NewPaginatedResponse(metadata)
 }
 
 // Update implements service_interfaces.IssueService.

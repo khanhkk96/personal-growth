@@ -94,13 +94,13 @@ func (p *ProjectServiceImpl) Detail(id string) (*responses.ProjectResponse, *fib
 }
 
 // List implements ProjectService.
-func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *entities.User) (*responses.ProjectPageResponse, *fiber.Error) {
+func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *entities.User) responses.ProjectPageResponse {
 	var projects []entities.Project
 
 	builder := p.repository.GetDataSource().Model(&entities.Project{})
 
-	if !utils.IsEmpty(options.Query) {
-		queryByName := fmt.Sprintf(`%%%s%%`, *options.Query)
+	if !utils.IsEmpty(&options.Query) {
+		queryByName := fmt.Sprintf(`%%%s%%`, options.Query)
 		builder = builder.Where("name LIKE ? OR stack LIKE ?", queryByName, queryByName)
 	}
 
@@ -118,7 +118,7 @@ func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *entitie
 
 	var totalItem int64
 	builder.Count(&totalItem)
-	builder.Offset((options.Page - 1) * options.Limit).Limit(options.Limit).Preload("CreatedBy").Find(&projects)
+	builder.Offset((options.Page - 1) * options.Limit).Limit(options.Limit).Order(fmt.Sprintf("%s %s", options.OrderBy, options.Order)).Preload("CreatedBy").Find(&projects)
 
 	// Convert projects to []interface{}
 	projectResponses := make([]responses.ProjectResponse, len(projects))
@@ -128,9 +128,8 @@ func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *entitie
 	}
 
 	metadata := responses.NewPaginationMetaData(options.Page, options.Limit, int(totalItem), projectResponses)
-	data := responses.NewPaginatedResponse(metadata)
 
-	return &data, nil
+	return responses.NewPaginatedResponse(metadata)
 }
 
 // Update implements ProjectService.

@@ -13,5 +13,5 @@ type ProjectService interface {
 	Update(id string, data requests.CreateOrUpdateProjectRequest, user *entities.User) (*responses.ProjectResponse, *fiber.Error)
 	Delete(id string, user *entities.User) (*responses.ProjectResponse, *fiber.Error)
 	Detail(id string) (*responses.ProjectResponse, *fiber.Error)
-	List(options requests.ProjectFilters, user *entities.User) (*responses.ProjectPageResponse, *fiber.Error)
+	List(options requests.ProjectFilters, user *entities.User) responses.ProjectPageResponse
 }

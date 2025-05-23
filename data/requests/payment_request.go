@@ -1,5 +1,14 @@
 package requests
 
+import "time"
+
+type PaymentFilters struct {
+	BaseRequest
+	PayBy   string     `query:"pay_by" json:"pay_by" validate:"omitempty,oneof=momo vnpay"`
+	PayFrom *time.Time `query:"pay_from" json:"pay_from" validate:"omitempty"`
+	PayTo   *time.Time `query:"pay_to" json:"pay_to" validate:"omitempty"`
+}
+
 type PaymentRequest struct {
 	Amount      int64  `json:"amount" validate:"min=10000"`
 	Description string `json:"description" default:"Payment for order"`

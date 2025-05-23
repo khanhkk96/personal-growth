@@ -18,6 +18,6 @@ type CreateOrUpdateIssueRequest struct {
 
 type IssueFilters struct {
 	BaseRequest
-	Status   *enums.IssueStatus   `json:"status" validate:"issue_status_enum"`
-	Priority *enums.IssuePriority `json:"priority" validate:"issue_priority_enum"`
+	Status   *enums.IssueStatus   `query:"status" validate:"issue_status_enum"`
+	Priority *enums.IssuePriority `query:"priority" validate:"issue_priority_enum"`
 }

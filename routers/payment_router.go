@@ -22,6 +22,7 @@ func NewPaymentRouter(controller *controllers.PaymentController, db *gorm.DB) *f
 	paymentRouter.Group("/payment", middlewares.Authenticate(), middlewares.GetProfileHandler(db)).Route("/", func(router fiber.Router) {
 		// router.Post("/momo", controller.MakeMomoPayment)
 		// router.Post("/vnpay", controller.MakeVNPayPayment)
+		router.Get("/", controller.GetTransactions)
 	})
 
 	return paymentRouter

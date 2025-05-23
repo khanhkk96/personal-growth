@@ -2,13 +2,11 @@ package controllers
 
 import (
 	"fmt"
-	"personal-growth/common/enums"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
 	"personal-growth/db/entities"
 	"personal-growth/helpers"
 	service_interfaces "personal-growth/services/interfaces"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -154,29 +152,18 @@ func (controller *IssueController) GetIssueDetail(ctx *fiber.Ctx) error {
 // @Accept 		json
 // @Produce 	json
 // @Success 	200 {object} responses.IssuePageResponse
-// @Param 		page query int false "Page number"
-// @Param 		limit query int false "Page size"
-// @Param 		q query string false "Search by name/stack"
-// @Param 		status query string false "Status" Enums(pending, processing, resolved)
-// @Param 		priority query string false "Priority" Enums(low, medium, high)
+// @Param 		filters query requests.IssueFilters false "Issue Filter"
 // @Router 		/api/issue [get]
 func (controller *IssueController) GetIssues(ctx *fiber.Ctx) error {
 	user := ctx.Locals("user").(*entities.User)
 
-	var filter requests.IssueFilters
-	query := ctx.Query("q")
-	filter.Query = &query
-	filter.Page, _ = strconv.Atoi(ctx.Query("page", "1"))
-	filter.Limit, _ = strconv.Atoi(ctx.Query("limit", "10"))
-	status := enums.IssueStatus(ctx.Query("status"))
-	filter.Status = &status
-	issuePriority := enums.IssuePriority(ctx.Query("priority"))
-	filter.Priority = &issuePriority
-
-	data, cerr := controller.service.List(filter, user)
-	if cerr != nil {
-		return ctx.Status(cerr.Code).JSON(cerr.Message)
+	var filters requests.IssueFilters
+	if err := ctx.QueryParser(&filters); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
+	data := controller.service.List(filters, user)
 
 	response := responses.Response{
 		Code:    200,

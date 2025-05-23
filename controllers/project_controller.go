@@ -1,13 +1,11 @@
 package controllers
 
 import (
-	"personal-growth/common/enums"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
 	"personal-growth/db/entities"
 	"personal-growth/helpers"
 	service_interfaces "personal-growth/services/interfaces"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -148,29 +146,20 @@ func (controller *ProjectController) GetProjectDetail(ctx *fiber.Ctx) error {
 // @Accept 		json
 // @Produce 	json
 // @Success 	200 {object} responses.ProjectPageResponse
-// @Param 		page query int false "Page number"
-// @Param 		limit query int false "Page size"
-// @Param 		q query string false "Search by name/stack"
-// @Param 		status query string false "Status" Enums(planning, postpone, ongoing, finished)
-// @Param 		type query string false "Type" Enums(web, desktop_app, mobile_app, library)
+// @Param 		filters query requests.ProjectFilters false "Project Filter"
 // @Router 		/api/project [get]
 func (controller *ProjectController) GetProjects(ctx *fiber.Ctx) error {
 	user := ctx.Locals("user").(*entities.User)
 
-	var filter requests.ProjectFilters
-	query := ctx.Query("q")
-	filter.Query = &query
-	filter.Page, _ = strconv.Atoi(ctx.Query("page", "1"))
-	filter.Limit, _ = strconv.Atoi(ctx.Query("limit", "10"))
-	status := enums.ProjectStatus(ctx.Query("status"))
-	filter.Status = &status
-	projectType := enums.ProjectType(ctx.Query("type"))
-	filter.Type = &projectType
-
-	data, cerr := controller.service.List(filter, user)
-	if cerr != nil {
-		return ctx.Status(cerr.Code).JSON(cerr.Message)
+	var filters requests.ProjectFilters
+	if err := ctx.QueryParser(&filters); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
+
+	// fmt.Printf("query::::::: %v\n", filters)
+	data := controller.service.List(filters, user)
 
 	response := responses.Response{
 		Code:    200,

@@ -22,7 +22,6 @@ func NewPaymentController(service service_interfaces.PaymentService) *PaymentCon
 // @Summary 	Make a payment via MoMo
 // @Description Make a payment via MoMo
 // @Tags 		Payment
-// @Security  	BearerAuth
 // @Accept 		json
 // @Produce 	json
 // @Param 		payemnt body requests.PaymentRequest true "Payment Info"
@@ -87,7 +86,6 @@ func (controller *PaymentController) MoMoNotifyPayment(ctx *fiber.Ctx) error {
 // @Summary 	Make a payment via VNPAY
 // @Description Make a payment via VNPAY
 // @Tags 		Payment
-// @Security  	BearerAuth
 // @Accept 		json
 // @Produce 	json
 // @Param 		payemnt body requests.PaymentRequest true "Payment Info"
@@ -134,4 +132,35 @@ func (controller *PaymentController) VnpayReturnPayment(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(200).JSON("OK")
+}
+
+// @Summary 	Get transaction list
+// @Description Get the list of the transactions
+// @Tags 		Payment
+// @Security  	BearerAuth
+// @Accept 		json
+// @Produce 	json
+// @Success 	200 {object} responses.PaymentPageResponse
+// @Param 		filters query requests.PaymentFilters false "Payment Filter"
+// @Router 		/api/payment [get]
+func (controller *PaymentController) GetTransactions(ctx *fiber.Ctx) error {
+	var filters requests.PaymentFilters
+	if err := ctx.QueryParser(&filters); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// fmt.Printf("query::::::: %v\n", filters)
+
+	data := controller.service.List(filters)
+
+	response := responses.Response{
+		Code:    200,
+		Status:  "ok",
+		Message: "Get list of transactions successfully",
+		Data:    data,
+	}
+
+	return ctx.Status(200).JSON(response)
 }
