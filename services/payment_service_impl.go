@@ -29,6 +29,11 @@ func NewPaymentServiceImpl(repository repositories.PaymentRepository, validate *
 
 // createMoMoPayment implements service_interfaces.PaymentService.
 func (p *PaymentServiceImpl) CreateMoMoPayment(request requests.PaymentRequest) (string, *fiber.Error) {
+	err := p.validate.Struct(request)
+	if err != nil {
+		return "", fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
+	}
+
 	url, err := helpers.PayViaQRMoMo(request.Amount, request.Description)
 	if err != nil {
 		return "", fiber.NewError(fiber.StatusBadRequest, "Make a payment by MOMO unsuccessfully")
@@ -40,6 +45,11 @@ func (p *PaymentServiceImpl) CreateMoMoPayment(request requests.PaymentRequest) 
 }
 
 func (p *PaymentServiceImpl) CreateVNPayPayment(request requests.PaymentRequest) (string, *fiber.Error) {
+	err := p.validate.Struct(request)
+	if err != nil {
+		return "", fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
+	}
+
 	url, err := helpers.PayViaVNPay(request.Amount, request.Description)
 	if err != nil {
 		return "", fiber.NewError(fiber.StatusBadRequest, "Make a payment by VNPAY unsuccessfully")

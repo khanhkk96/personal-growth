@@ -1,8 +1,8 @@
 package requests
 
 type PaymentRequest struct {
-	Amount      int64  `json:"amount" validate:"min=1000"`
-	Description string `json:"description"`
+	Amount      int64  `json:"amount" validate:"min=10000"`
+	Description string `json:"description" default:"Payment for order"`
 }
 
 type VNPayPaymentResultRequest struct {

@@ -15,11 +15,13 @@ func NewPaymentRouter(controller *controllers.PaymentController, db *gorm.DB) *f
 		router.Get("/momo_notify", controller.MoMoNotifyPayment)
 		router.Get("/momo_return", controller.MoMoReturnPayment)
 		router.Get("/vnpay_return", controller.VnpayReturnPayment)
+		router.Post("/momo", controller.MakeMomoPayment)
+		router.Post("/vnpay", controller.MakeVNPayPayment)
 	})
 
 	paymentRouter.Group("/payment", middlewares.Authenticate(), middlewares.GetProfileHandler(db)).Route("/", func(router fiber.Router) {
-		router.Post("/momo", controller.MakeMomoPayment)
-		router.Post("/vnpay", controller.MakeVNPayPayment)
+		// router.Post("/momo", controller.MakeMomoPayment)
+		// router.Post("/vnpay", controller.MakeVNPayPayment)
 	})
 
 	return paymentRouter

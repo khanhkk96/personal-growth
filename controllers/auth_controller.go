@@ -6,10 +6,12 @@ import (
 	"personal-growth/db/entities"
 	"personal-growth/helpers"
 	service_interfaces "personal-growth/services/interfaces"
+	"personal-growth/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jinzhu/copier"
+	"github.com/spf13/viper"
 )
 
 type AuthController struct {
@@ -41,13 +43,14 @@ func (controller *AuthController) Login(ctx *fiber.Ctx) error {
 	}
 
 	// Set new refresh token in secure HttpOnly cookie
+	refreshExpiredIn, _ := utils.ParseDurationFromEnv(viper.GetString("REFRESH_TOKEN_MAX_AGE"))
 	ctx.Cookie(&fiber.Cookie{
 		Name:     "refresh_token",
 		Value:    tokens.RefreshToken,
 		HTTPOnly: true,
 		Secure:   true,
 		SameSite: "Strict",
-		Expires:  time.Now().Add(7 * 24 * time.Hour),
+		Expires:  time.Now().Add(refreshExpiredIn),
 	})
 
 	webResponse := responses.Response{

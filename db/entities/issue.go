@@ -11,7 +11,7 @@ type Issue struct {
 	Description sql.NullString      `gorm:"type:text"`
 	Files       sql.NullString      `gorm:"type:string"`
 	ProjectId   sql.NullString      `gorm:"type:uuid"`
-	Project     Project             `gorm:"foreignKey:ProjectId"`
+	Project     *Project            `gorm:"foreignKey:ProjectId"`
 	Status      enums.IssueStatus   `gorm:"type:string; not null; default='pending'"`
 	Priority    enums.IssuePriority `gorm:"type:string; not null"`
 	IssuedAt    sql.NullTime        `gorm:"type:time"`

@@ -25,11 +25,11 @@ type BasePaginatedResponse[T any] struct {
 }
 
 type BaseResponse struct {
-	Id          string       `json:"id"`
-	CreatedById uuid.UUID    `json:"created_by_id"`
-	CreatedBy   UserResponse `json:"created_by" type:"UserResponse"`
-	CreatedAt   time.Time    `json:"created_at"`
-	UpdatedAt   time.Time    `json:"updated_at"`
+	Id          string        `json:"id"`
+	CreatedById uuid.UUID     `json:"created_by_id"`
+	CreatedBy   *UserResponse `json:"created_by" type:"UserResponse"`
+	CreatedAt   time.Time     `json:"created_at"`
+	UpdatedAt   time.Time     `json:"updated_at"`
 }
 
 type PaginationMetaData[T any] struct {

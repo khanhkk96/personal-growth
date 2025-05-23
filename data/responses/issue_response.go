@@ -12,7 +12,7 @@ type IssueResponse struct {
 	Description string              `json:"description"`
 	Images      string              `json:"image"`
 	ProjectId   string              `json:"project_id"`
-	Project     ProjectResponse     `json:"project"`
+	Project     *ProjectResponse    `json:"project"`
 	Status      enums.IssueStatus   `json:"status"`
 	Priority    enums.IssuePriority `json:"priority"`
 	IssuedAt    time.Time           `json:"issued_at"`

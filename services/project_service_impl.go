@@ -7,6 +7,7 @@ import (
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
 	"personal-growth/db/entities"
+	"personal-growth/helpers"
 	"personal-growth/repositories"
 	service_interfaces "personal-growth/services/interfaces"
 	"personal-growth/utils"
@@ -32,7 +33,7 @@ func NewProjectServiceImpl(repository repositories.ProjectRepository, validate *
 func (p *ProjectServiceImpl) Add(data requests.CreateOrUpdateProjectRequest, user *entities.User) (*responses.ProjectResponse, *fiber.Error) {
 	//validate input data
 	if err := p.validate.Struct(data); err != nil {
-		return nil, fiber.NewError(fiber.StatusBadGateway, "Invalid data")
+		return nil, fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
 	}
 
 	// check if project name already exists
@@ -45,6 +46,7 @@ func (p *ProjectServiceImpl) Add(data requests.CreateOrUpdateProjectRequest, use
 	// copy data from request to project
 	copier.Copy(project, data)
 	project.CreatedById = user.Id
+	project.CreatedBy = user
 
 	cerr := p.repository.Create(project)
 	if cerr != nil {
@@ -135,7 +137,7 @@ func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *entitie
 func (p *ProjectServiceImpl) Update(id string, data requests.CreateOrUpdateProjectRequest, user *entities.User) (*responses.ProjectResponse, *fiber.Error) {
 	//validate input data
 	if err := p.validate.Struct(data); err != nil {
-		return nil, fiber.NewError(fiber.StatusBadGateway, "Invalid data")
+		return nil, fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
 	}
 
 	// check if project name already exists

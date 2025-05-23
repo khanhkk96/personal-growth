@@ -8,6 +8,7 @@ import (
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
 	"personal-growth/db/entities"
+	"personal-growth/helpers"
 	"personal-growth/repositories"
 	service_interfaces "personal-growth/services/interfaces"
 	"personal-growth/utils"
@@ -36,7 +37,7 @@ func NewIssueServiceImpl(repository repositories.IssueRepository, validate *vali
 func (i *IssueServiceImpl) Add(data requests.CreateOrUpdateIssueRequest, files []string, user *entities.User) (*responses.IssueResponse, *fiber.Error) {
 	//validate input data
 	if err := i.validate.Struct(data); err != nil {
-		return nil, fiber.NewError(fiber.StatusBadGateway, "Invalid data")
+		return nil, fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
 	}
 
 	// check if issue name already exists
@@ -55,7 +56,7 @@ func (i *IssueServiceImpl) Add(data requests.CreateOrUpdateIssueRequest, files [
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fiber.NewError(fiber.StatusBadRequest, "Project not found")
 		}
-		issue.Project = project
+		issue.Project = &project
 	} else {
 		issue.ProjectId = sql.NullString{
 			String: "",
@@ -64,6 +65,8 @@ func (i *IssueServiceImpl) Add(data requests.CreateOrUpdateIssueRequest, files [
 	}
 
 	issue.CreatedById = user.Id
+	issue.CreatedBy = user
+
 	if len(files) > 0 {
 		issue.Files = sql.NullString{
 			String: strings.Join(files, ","),
@@ -162,7 +165,7 @@ func (i *IssueServiceImpl) List(options requests.IssueFilters, user *entities.Us
 func (i *IssueServiceImpl) Update(id string, data requests.CreateOrUpdateIssueRequest, files []string, user *entities.User) (*responses.IssueResponse, *fiber.Error) {
 	//validate input data
 	if err := i.validate.Struct(data); err != nil {
-		return nil, fiber.NewError(fiber.StatusBadGateway, "Invalid data")
+		return nil, fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
 	}
 
 	// check if issue name already exists
@@ -185,7 +188,7 @@ func (i *IssueServiceImpl) Update(id string, data requests.CreateOrUpdateIssueRe
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fiber.NewError(fiber.StatusBadRequest, "Project not found")
 		}
-		issue.Project = project
+		issue.Project = &project
 	} else {
 		issue.ProjectId = sql.NullString{
 			String: "",

@@ -37,7 +37,7 @@ func NewAuthServiceImpl(repository repositories.UserRepository, validate *valida
 func (n *AuthServiceImpl) Login(data requests.LoginRequest) (*responses.LoginResponse, *fiber.Error) {
 	// Validate username and password
 	if err := n.validate.Struct(data); err != nil {
-		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid data")
+		return nil, fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
 	}
 
 	// Check if user exists in the database
@@ -107,7 +107,7 @@ func (n *AuthServiceImpl) RefreshAccessToken(refreshToken string) (string, *fibe
 func (n *AuthServiceImpl) Register(data requests.RegisterRequest) (*entities.User, *fiber.Error) {
 	// Validate input data
 	if err := n.validate.Struct(data); err != nil {
-		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid data")
+		return nil, fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
 	}
 
 	// Check if user exists in the database
@@ -223,7 +223,7 @@ func (n *AuthServiceImpl) VerifyAccount(data requests.VerifyOTPRequest) *fiber.E
 func (n *AuthServiceImpl) VerifyOtp(data requests.VerifyOTPRequest) *fiber.Error {
 	// Validate input data
 	if err := n.validate.Struct(data); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid data")
+		return fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
 	}
 
 	// Check if user exists in the database
@@ -286,7 +286,7 @@ func (n *AuthServiceImpl) ResendOtp(email string) *fiber.Error {
 func (n *AuthServiceImpl) ChangePassword(data requests.ChangePasswordRequest, user *entities.User) *fiber.Error {
 	//validate input data
 	if err := n.validate.Struct(data); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid data")
+		return fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
 	}
 
 	if !user.CompareHashAndPassword(data.OldPassword) {
@@ -310,7 +310,7 @@ func (n *AuthServiceImpl) ChangePassword(data requests.ChangePasswordRequest, us
 func (n *AuthServiceImpl) SetNewPassword(data requests.SetNewPasswordRequest) *fiber.Error {
 	//validate input data
 	if err := n.validate.Struct(data); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid data")
+		return fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
 	}
 
 	verr := n.VerifyOtp(requests.VerifyOTPRequest{Otp: data.Otp, Email: data.Email})
