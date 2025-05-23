@@ -90,7 +90,7 @@ func (r *RedisClient) SetVal(key string, val interface{}, ttl time.Duration) err
 
 func (r *RedisClient) GetVal(key string) (string, error) {
 	val, err := r.Client.Get(ctx, key).Result()
-	if err != nil {
+	if err != redis.Nil && err != nil {
 		return "", fmt.Errorf("could not get val with key %s - %v", key, err)
 	}
 	return val, nil

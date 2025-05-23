@@ -36,10 +36,6 @@ func Authenticate() fiber.Handler {
 		rdb := handlers.NewRedis()
 		rfToken := c.Cookies("refresh_token")
 		val, _ := rdb.GetVal(fmt.Sprintf("actoken_%s_%s", claims["sub"], rfToken[len(rfToken)-6:]))
-		// if rdserr != nil {
-		// 	fmt.Printf("Can not get access token: %v", rdserr)
-		// 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Internal server error"})
-		// }
 
 		if val != tokenStr {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid access token"})

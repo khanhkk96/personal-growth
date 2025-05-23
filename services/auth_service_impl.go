@@ -63,10 +63,8 @@ func (n *AuthServiceImpl) Login(data requests.LoginRequest) (*responses.LoginRes
 
 	// delete old tokens
 	rdb := handlers.NewRedis()
-	if rdb != nil {
-		rdb.SetVal(fmt.Sprintf("actoken_%s_%s", user.Id, rf[len(rf)-6:]), token, 0)
-		rdb.SetVal(fmt.Sprintf("rftoken_%s_%s", user.Id, rf[len(rf)-6:]), rf, 0)
-	}
+	rdb.SetVal(fmt.Sprintf("actoken_%s_%s", user.Id, rf[len(rf)-6:]), token, config.TokenExpiredIn)
+	rdb.SetVal(fmt.Sprintf("rftoken_%s_%s", user.Id, rf[len(rf)-6:]), rf, refreshExpiredIn)
 
 	return &responses.LoginResponse{
 		AccessToken:  token,
@@ -76,13 +74,23 @@ func (n *AuthServiceImpl) Login(data requests.LoginRequest) (*responses.LoginRes
 
 func (n *AuthServiceImpl) RefreshAccessToken(refreshToken string) (string, *fiber.Error) {
 	config, _ := configs.LoadConfig(".")
+
 	// Kiểm tra refresh token hợp lệ
-	claims, err := utils.ValidateRefreshToken(refreshToken, config.RefreshTokenSecret)
+	claims, err := utils.VerifyRefreshToken(refreshToken, config.RefreshTokenSecret)
 	if err != nil {
 		return "", fiber.NewError(fiber.StatusUnauthorized, "Invalid or expired refresh token")
 	}
 
 	userID := claims["sub"].(string)
+
+	// kiểm tra refresh token có tồn tại trong Redis
+	rdb := handlers.NewRedis()
+	savedRefreshToken, err := rdb.GetVal(fmt.Sprintf("rftoken_%s_%s", userID, refreshToken[len(refreshToken)-6:]))
+	helpers.ErrorPanic(err)
+
+	if savedRefreshToken != refreshToken {
+		return "", fiber.NewError(fiber.StatusUnauthorized, "Invalid or expired refresh token")
+	}
 
 	// Tạo access token mới
 	newAccessToken, err := utils.GenerateAccessToken(config.TokenExpiredIn, userID, config.TokenSecret)
@@ -91,10 +99,7 @@ func (n *AuthServiceImpl) RefreshAccessToken(refreshToken string) (string, *fibe
 	}
 
 	// Lưu access token mới vào Redis
-	rdb := handlers.NewRedis()
-	if rdb != nil {
-		rdb.SetVal(fmt.Sprintf("actoken_%s_%s", userID, refreshToken[len(refreshToken)-6:]), newAccessToken, 0)
-	}
+	rdb.SetVal(fmt.Sprintf("actoken_%s_%s", userID, refreshToken[len(refreshToken)-6:]), newAccessToken, config.TokenExpiredIn)
 
 	return newAccessToken, nil
 }
@@ -297,9 +302,7 @@ func (n *AuthServiceImpl) ChangePassword(data requests.ChangePasswordRequest, us
 
 	// delete old tokens
 	rdb := handlers.NewRedis()
-	if rdb != nil {
-		rdb.DeleteUserToken(user.Id.String())
-	}
+	rdb.DeleteUserToken(user.Id.String())
 
 	return nil
 }
@@ -331,9 +334,7 @@ func (n *AuthServiceImpl) SetNewPassword(data requests.SetNewPasswordRequest) *f
 
 	// delete old tokens
 	rdb := handlers.NewRedis()
-	if rdb != nil {
-		rdb.DeleteUserToken(user.Id.String())
-	}
+	rdb.DeleteUserToken(user.Id.String())
 
 	return nil
 }
@@ -359,9 +360,7 @@ func (n *AuthServiceImpl) Logout(uid string, refreshToken string) *fiber.Error {
 
 	// delete old tokens
 	rdb := handlers.NewRedis()
-	if rdb != nil {
-		rdb.DeleteOneDevice(uid, refreshToken)
-	}
+	rdb.DeleteOneDevice(uid, refreshToken)
 
 	return nil
 }

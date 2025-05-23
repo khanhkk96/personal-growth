@@ -80,7 +80,7 @@ func GenerateTokens(ttl time.Duration, payload interface{}, secretKey string, rf
 }
 
 // Kiểm tra refresh token hợp lệ
-func ValidateRefreshToken(tokenStr string, secretKey string) (jwt.MapClaims, error) {
+func VerifyRefreshToken(tokenStr string, secretKey string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	})
