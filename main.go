@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	configs "personal-growth/configs"
-	"personal-growth/db/entities"
 	injections "personal-growth/di"
 	"personal-growth/docs"
 	"personal-growth/middlewares"
@@ -29,15 +28,15 @@ func main() {
 	//Database
 	db := configs.ConnectDB(&loadConfig)
 
-	db.AutoMigrate(
-		&entities.User{},
-		&entities.Project{},
-		&entities.Issue{},
-		&entities.Plan{},
-		&entities.Schedule{},
-		&entities.Article{},
-		&entities.Payment{},
-	)
+	// db.AutoMigrate(
+	// 	&entities.User{},
+	// 	&entities.Project{},
+	// 	&entities.Issue{},
+	// 	&entities.Plan{},
+	// 	&entities.Schedule{},
+	// 	&entities.Article{},
+	// 	&entities.Payment{},
+	// )
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middlewares.ErrorHandler,
