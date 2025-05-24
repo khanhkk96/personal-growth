@@ -5,7 +5,7 @@ import (
 	"log"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
-	"personal-growth/db/entities"
+	"personal-growth/db/models"
 	"personal-growth/helpers"
 	"personal-growth/repositories"
 	service_interfaces "personal-growth/services/interfaces"
@@ -70,7 +70,7 @@ func (p *PaymentServiceImpl) SaveVNPayTransaction(data requests.VNPayPaymentResu
 	parsedTime, err := time.Parse("20060102150405", data.PayDate)
 	helpers.ErrorPanic(err)
 
-	payment := &entities.Payment{}
+	payment := &models.Payment{}
 	copier.Copy(payment, data)
 	payment.TransactionStatus = "success"
 	payment.PayDate = parsedTime
@@ -94,7 +94,7 @@ func (p *PaymentServiceImpl) SaveMomoTransaction(data requests.MomoPaymentResult
 	parsedTime, err := time.Parse("20060102150405", data.PayDate)
 	helpers.ErrorPanic(err)
 
-	payment := &entities.Payment{}
+	payment := &models.Payment{}
 	copier.Copy(payment, data)
 	payment.TransactionStatus = "success"
 	payment.PayDate = parsedTime
@@ -111,8 +111,8 @@ func (p *PaymentServiceImpl) SaveMomoTransaction(data requests.MomoPaymentResult
 }
 
 func (p *PaymentServiceImpl) List(options requests.PaymentFilters) responses.PaymentPageResponse {
-	var transactions []entities.Payment
-	builder := p.repository.GetDataSource().Model(&entities.Payment{})
+	var transactions []models.Payment
+	builder := p.repository.GetDataSource().Model(&models.Payment{})
 
 	if !utils.IsEmpty(&options.Query) {
 		queryByName := fmt.Sprintf(`%%%s%%`, options.Query)

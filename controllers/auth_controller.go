@@ -3,7 +3,7 @@ package controllers
 import (
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
-	"personal-growth/db/entities"
+	"personal-growth/db/models"
 	"personal-growth/helpers"
 	service_interfaces "personal-growth/services/interfaces"
 	"personal-growth/utils"
@@ -154,7 +154,7 @@ func (controller *AuthController) Me(ctx *fiber.Ctx) error {
 // @Param        password body requests.ChangePasswordRequest true "Password info"
 // @Router       /api/auth/change-password [POST]
 func (controller *AuthController) ChangePassword(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*entities.User)
+	user := ctx.Locals("user").(*models.User)
 
 	request := requests.ChangePasswordRequest{}
 	err := ctx.BodyParser(&request)
@@ -320,7 +320,7 @@ func (controller *AuthController) SetNewPassword(ctx *fiber.Ctx) error {
 // @Router       /api/auth/upload-avatar [POST]
 func (controller *AuthController) UploadAvatar(ctx *fiber.Ctx) error {
 	file := ctx.Locals("file").(string)
-	user := ctx.Locals("user").(*entities.User)
+	user := ctx.Locals("user").(*models.User)
 
 	rerr := controller.service.UploadAvatar(file, user)
 	if rerr != nil {
@@ -346,7 +346,7 @@ func (controller *AuthController) UploadAvatar(ctx *fiber.Ctx) error {
 // @Success      200 {object} responses.UserResponse
 // @Router       /api/auth/logout [GET]
 func (controller *AuthController) Logout(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(*entities.User)
+	user := ctx.Locals("user").(*models.User)
 	refreshToken := ctx.Cookies("refresh_token")
 
 	err := controller.service.Logout(user.Id.String(), refreshToken)

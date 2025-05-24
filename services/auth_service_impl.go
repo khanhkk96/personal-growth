@@ -8,7 +8,7 @@ import (
 	"personal-growth/configs"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
-	"personal-growth/db/entities"
+	"personal-growth/db/models"
 	"personal-growth/handlers"
 	"personal-growth/helpers"
 	"personal-growth/repositories"
@@ -104,7 +104,7 @@ func (n *AuthServiceImpl) RefreshAccessToken(refreshToken string) (string, *fibe
 	return newAccessToken, nil
 }
 
-func (n *AuthServiceImpl) Register(data requests.RegisterRequest) (*entities.User, *fiber.Error) {
+func (n *AuthServiceImpl) Register(data requests.RegisterRequest) (*models.User, *fiber.Error) {
 	// Validate input data
 	if err := n.validate.Struct(data); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
@@ -117,7 +117,7 @@ func (n *AuthServiceImpl) Register(data requests.RegisterRequest) (*entities.Use
 	}
 
 	//save user data
-	user = &entities.User{}
+	user = &models.User{}
 	copier.Copy(user, data)
 
 	//generate OTP
@@ -283,7 +283,7 @@ func (n *AuthServiceImpl) ResendOtp(email string) *fiber.Error {
 	return nil
 }
 
-func (n *AuthServiceImpl) ChangePassword(data requests.ChangePasswordRequest, user *entities.User) *fiber.Error {
+func (n *AuthServiceImpl) ChangePassword(data requests.ChangePasswordRequest, user *models.User) *fiber.Error {
 	//validate input data
 	if err := n.validate.Struct(data); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
@@ -339,7 +339,7 @@ func (n *AuthServiceImpl) SetNewPassword(data requests.SetNewPasswordRequest) *f
 	return nil
 }
 
-func (n *AuthServiceImpl) UploadAvatar(file string, user *entities.User) *fiber.Error {
+func (n *AuthServiceImpl) UploadAvatar(file string, user *models.User) *fiber.Error {
 	// Validate input data
 	if file == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid avatar")

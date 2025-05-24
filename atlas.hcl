@@ -5,7 +5,7 @@ data "external_schema" "gorm" {
     "-mod=mod",
     "ariga.io/atlas-provider-gorm",
     "load",
-    "--path", "./db/entities",  // set this to your models' path       
+    "--path", "./db/models",  // set this to your models' path       
     "--dialect", "postgres",          // use: mysql, postgres, sqlite, or  sqlserver
   ]
 }

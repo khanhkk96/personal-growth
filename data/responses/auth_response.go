@@ -13,4 +13,5 @@ type UserResponse struct {
 	Phone    string `json:"phone"`
 	IsActive bool   `json:"is_active"`
 	Role     string `json:"role"`
+	Avatar   string `json:"avatar"`
 }

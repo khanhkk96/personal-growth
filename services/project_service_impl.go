@@ -6,7 +6,7 @@ import (
 	"personal-growth/common/enums"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
-	"personal-growth/db/entities"
+	"personal-growth/db/models"
 	"personal-growth/helpers"
 	"personal-growth/repositories"
 	service_interfaces "personal-growth/services/interfaces"
@@ -30,7 +30,7 @@ func NewProjectServiceImpl(repository repositories.ProjectRepository, validate *
 }
 
 // Add implements ProjectService.
-func (p *ProjectServiceImpl) Add(data requests.CreateOrUpdateProjectRequest, user *entities.User) (*responses.ProjectResponse, *fiber.Error) {
+func (p *ProjectServiceImpl) Add(data requests.CreateOrUpdateProjectRequest, user *models.User) (*responses.ProjectResponse, *fiber.Error) {
 	//validate input data
 	if err := p.validate.Struct(data); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))
@@ -42,7 +42,7 @@ func (p *ProjectServiceImpl) Add(data requests.CreateOrUpdateProjectRequest, use
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Project already exists")
 	}
 
-	project = &entities.Project{}
+	project = &models.Project{}
 	// copy data from request to project
 	copier.Copy(project, data)
 	project.CreatedById = user.Id
@@ -60,7 +60,7 @@ func (p *ProjectServiceImpl) Add(data requests.CreateOrUpdateProjectRequest, use
 }
 
 // Delete implements ProjectService.
-func (p *ProjectServiceImpl) Delete(id string, user *entities.User) (*responses.ProjectResponse, *fiber.Error) {
+func (p *ProjectServiceImpl) Delete(id string, user *models.User) (*responses.ProjectResponse, *fiber.Error) {
 	project, _ := p.repository.FindByID(id)
 	if project == nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Project not found")
@@ -94,10 +94,10 @@ func (p *ProjectServiceImpl) Detail(id string) (*responses.ProjectResponse, *fib
 }
 
 // List implements ProjectService.
-func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *entities.User) responses.ProjectPageResponse {
-	var projects []entities.Project
+func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *models.User) responses.ProjectPageResponse {
+	var projects []models.Project
 
-	builder := p.repository.GetDataSource().Model(&entities.Project{})
+	builder := p.repository.GetDataSource().Model(&models.Project{})
 
 	if !utils.IsEmpty(&options.Query) {
 		queryByName := fmt.Sprintf(`%%%s%%`, options.Query)
@@ -133,7 +133,7 @@ func (p *ProjectServiceImpl) List(options requests.ProjectFilters, user *entitie
 }
 
 // Update implements ProjectService.
-func (p *ProjectServiceImpl) Update(id string, data requests.CreateOrUpdateProjectRequest, user *entities.User) (*responses.ProjectResponse, *fiber.Error) {
+func (p *ProjectServiceImpl) Update(id string, data requests.CreateOrUpdateProjectRequest, user *models.User) (*responses.ProjectResponse, *fiber.Error) {
 	//validate input data
 	if err := p.validate.Struct(data); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest, helpers.PrintErrorMessage(err))

@@ -1,23 +1,23 @@
 package repositories
 
 import (
-	"personal-growth/db/entities"
+	"personal-growth/db/models"
 
 	"gorm.io/gorm"
 )
 
 type PaymentRepository interface {
-	BaseRepository[entities.Payment]
+	BaseRepository[models.Payment]
 }
 
 type paymentRepository struct {
-	BaseRepository[entities.Payment]
+	BaseRepository[models.Payment]
 	db *gorm.DB
 }
 
 func NewPaymentRepository(db *gorm.DB) PaymentRepository {
 	return &paymentRepository{
-		BaseRepository: NewBaseRepository[entities.Payment](db),
+		BaseRepository: NewBaseRepository[models.Payment](db),
 		db:             db,
 	}
 }

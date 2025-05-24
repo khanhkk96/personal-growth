@@ -1,12 +1,12 @@
 package requests
 
 type LoginRequest struct {
-	Username string `json:"username" validate:"required,min=6,max=50"`
+	Username string `json:"username" validate:"required,min=3,max=50"`
 	Password string `json:"password" validate:"required,min=6,max=20"`
 }
 
 type RegisterRequest struct {
-	Username string `validate:"required,min=6,max=50" json:"username"`
+	Username string `validate:"required,min=3,max=50" json:"username"`
 	Password string `validate:"required,min=6,max=20" json:"password"`
 	FullName string `validate:"required,min=6,max=100" json:"full_name"`
 	Email    string `validate:"required,email" json:"email"`

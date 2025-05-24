@@ -6,6 +6,7 @@ import (
 	configs "personal-growth/configs"
 	injections "personal-growth/di"
 	"personal-growth/docs"
+	"personal-growth/handlers"
 	"personal-growth/middlewares"
 
 	"github.com/gofiber/fiber/v2"
@@ -29,14 +30,17 @@ func main() {
 	db := configs.ConnectDB(&loadConfig)
 
 	// db.AutoMigrate(
-	// 	&entities.User{},
-	// 	&entities.Project{},
-	// 	&entities.Issue{},
-	// 	&entities.Plan{},
-	// 	&entities.Schedule{},
-	// 	&entities.Article{},
-	// 	&entities.Payment{},
+	// 	&models.User{},
+	// 	&models.Project{},
+	// 	&models.Issue{},
+	// 	&models.Plan{},
+	// 	&models.Schedule{},
+	// 	&models.Article{},
+	// 	&models.Payment{},
 	// )
+
+	// Seed admin acount if it doesn't exist
+	handlers.InitAdmin(db)
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middlewares.ErrorHandler,

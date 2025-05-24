@@ -1,23 +1,23 @@
 package repositories
 
 import (
-	"personal-growth/db/entities"
+	"personal-growth/db/models"
 
 	"gorm.io/gorm"
 )
 
 type IssueRepository interface {
-	BaseRepository[entities.Issue]
+	BaseRepository[models.Issue]
 }
 
 type issueRepository struct {
-	BaseRepository[entities.Issue]
+	BaseRepository[models.Issue]
 	db *gorm.DB
 }
 
 func NewIssueRepository(db *gorm.DB) IssueRepository {
 	return &issueRepository{
-		BaseRepository: NewBaseRepository[entities.Issue](db),
+		BaseRepository: NewBaseRepository[models.Issue](db),
 		db:             db,
 	}
 }

@@ -58,27 +58,27 @@ func (r *baseRepository[T]) FindOneBy(query interface{}, args ...interface{}) (*
 }
 
 func (r *baseRepository[T]) FindAll(cons ...interface{}) ([]T, error) {
-	var entities []T
-	if err := r.db.Find(&entities, cons).Error; err != nil {
+	var models []T
+	if err := r.db.Find(&models, cons).Error; err != nil {
 		return nil, err
 	}
-	return entities, nil
+	return models, nil
 }
 
 func (r *baseRepository[T]) FindMany(query interface{}, args ...interface{}) ([]T, error) {
-	var entities []T
-	if err := r.db.Where(query, args).Find(&entities).Error; err != nil {
+	var models []T
+	if err := r.db.Where(query, args).Find(&models).Error; err != nil {
 		return nil, err
 	}
-	return entities, nil
+	return models, nil
 }
 
 func (r *baseRepository[T]) FindMapMany(cons map[string]interface{}) ([]T, error) {
-	var entities []T
-	if err := r.db.Where(cons).Find(&entities).Error; err != nil {
+	var models []T
+	if err := r.db.Where(cons).Find(&models).Error; err != nil {
 		return nil, err
 	}
-	return entities, nil
+	return models, nil
 }
 
 func (r *baseRepository[T]) Update(entity *T) error {
