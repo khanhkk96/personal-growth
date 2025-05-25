@@ -11,6 +11,21 @@ data "external_schema" "gorm" {
 }
 
 env "gorm" {
+  url = "postgres://postgres:postgres@localhost:5432/pgw?sslmode=disable"
+  src = data.external_schema.gorm.url
+  dev = "docker://postgres/15"     // or your actual dev url, must match dialect
+  migration {
+    dir = "file://db/migrations"
+  }
+  format {
+    migrate {
+      diff = "{{ sql . \"  \" }}"
+    }
+  }
+}
+
+env "docker" {
+  url = "postgres://postgres:postgres@localhost:5433/pgw?sslmode=disable"
   src = data.external_schema.gorm.url
   dev = "docker://postgres/15"     // or your actual dev url, must match dialect
   migration {
