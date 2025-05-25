@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pgw_app
+    ports:
+      - '8080:8000'
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: pgw_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pgw
+    ports:
+      - '5433:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: pgw_redis
+    ports:
+      - '6389:6379'
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
