@@ -25,7 +25,7 @@ env "gorm" {
 }
 
 env "docker" {
-  url = "postgres://postgres:postgres@localhost:5433/pgw?sslmode=disable"
+  url = "postgres://postgres:postgres@pgw_postgres:5432/pgw?sslmode=disable"
   src = data.external_schema.gorm.url
   dev = "docker://postgres/15"     // or your actual dev url, must match dialect
   migration {

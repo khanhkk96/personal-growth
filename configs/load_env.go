@@ -1,6 +1,9 @@
 package configs
 
 import (
+	"encoding/json"
+	"os"
+	"reflect"
 	"time"
 
 	"github.com/spf13/viper"
@@ -27,6 +30,23 @@ type Config struct {
 }
 
 func LoadConfig(path string) (config Config, err error) {
+	_, ferr := os.Stat("dev.env")
+	if ferr != nil {
+		typ := reflect.TypeOf(Config{})
+
+		var configObj map[string]interface{} = make(map[string]interface{})
+		for i := 0; i < typ.NumField(); i++ {
+			field := typ.Field(i) // Lấy metadata field
+
+			configObj[field.Name] = os.Getenv(field.Tag.Get("mapstructure"))
+		}
+
+		data, _ := json.Marshal(configObj)
+		json.Unmarshal(data, &config)
+
+		return
+	}
+
 	viper.AddConfigPath(path)
 	viper.SetConfigType("env")
 	viper.SetConfigName("dev")
@@ -39,5 +59,6 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 
 	err = viper.Unmarshal(&config)
+
 	return
 }
