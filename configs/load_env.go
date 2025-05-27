@@ -10,23 +10,43 @@ import (
 )
 
 type Config struct {
-	//database
+	// database
 	DBHost     string `mapstructure:"DB_HOST"`
 	DBPort     string `mapstructure:"DB_PORT"`
 	DBUser     string `mapstructure:"DB_USER"`
 	DBPassword string `mapstructure:"DB_PASSWORD"`
 	DBName     string `mapstructure:"DB_NAME"`
-	//server
+	// server
 	ServerPort string `mapstructure:"PORT"`
-	//authentication
+	// authentication
 	TokenSecret        string        `mapstructure:"TOKEN_SECRET"`
 	TokenExpiredIn     time.Duration `mapstructure:"TOKEN_EXPIRED_IN"`
 	RefreshTokenMaxAge string        `mapstructure:"REFRESH_TOKEN_MAX_AGE"`
 	RefreshTokenSecret string        `mapstructure:"REFRESH_TOKEN_SECRET"`
-	//email
+	// email
 	EmailAddress  string `mapstructure:"EMAIL_ADDRESS"`
 	EmailPassword string `mapstructure:"EMAIL_PASSWORD"`
+
+	// redis
+	RedisHost     string `mapstructure:"REDIS_HOST"`
+	RedisPort     string `mapstructure:"REDIS_PORT"`
+	RedisPassword string `mapstructure:"REDIS_PASSWORD"`
+
 	ClientAddress string `mapstructure:"CLIENT_ADDRESS"`
+	ServerAddress string `mapstructure:"API_SERVER_ADDRESS"`
+	ServerIP      string `mapstructure:"SERVER_IP"`
+
+	// momo
+	MomoMUrl        string `mapstructure:"MOMO_URL"`
+	MomoPartnerCode string `mapstructure:"MOMO_PARTNER_CODE"`
+	MomoAccessKey   string `mapstructure:"MOMO_ACCESS_KEY"`
+	MomoSecretKey   string `mapstructure:"MOMO_SECRET_KEY"`
+
+	// vnpay
+	VnpTmnCode    string `mapstructure:"VNP_TMN_CODE"`
+	VnpHashSecret string `mapstructure:"VNP_HASH_SECRET"`
+	VnpUrl        string `mapstructure:"VNP_URL"`
+	VnpVersion    string `mapstructure:"VNP_VERSION"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -43,6 +63,8 @@ func LoadConfig(path string) (config Config, err error) {
 
 		data, _ := json.Marshal(configObj)
 		json.Unmarshal(data, &config)
+
+		viper.AutomaticEnv()
 
 		return
 	}

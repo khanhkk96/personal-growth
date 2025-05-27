@@ -17,6 +17,7 @@ type RedisClient struct {
 }
 
 func NewRedis() *RedisClient {
+	fmt.Printf("Connecting to Redis at %s:%s ::: password:%s\n", viper.GetString("REDIS_HOST"), viper.GetString("REDIS_PORT"), viper.GetString("REDIS_PASSWORD"))
 	// Initialize Redis client
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", viper.GetString("REDIS_HOST"), viper.GetString("REDIS_PORT")),

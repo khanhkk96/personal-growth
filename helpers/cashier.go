@@ -217,8 +217,8 @@ func PayViaMoMoLink(amountV int64, description string) (string, error) {
 
 func PayViaVNPay(amountV int64, description string) (string, error) {
 	// // config
-	vnp_TmnCode := viper.GetString("VNP_TMNCODE")
-	vnp_HashSecret := viper.GetString("VNP_HASHSECRET")
+	vnp_TmnCode := viper.GetString("VNP_TMN_CODE")
+	vnp_HashSecret := viper.GetString("VNP_HASH_SECRET")
 	vnp_Url := viper.GetString("VNP_URL")
 	vnp_Version := viper.GetString("VNP_VERSION")
 	vnp_ReturnUrl := fmt.Sprintf("%s/api/payment/vnpay_return", viper.GetString("API_SERVER_ADDRESS"))
