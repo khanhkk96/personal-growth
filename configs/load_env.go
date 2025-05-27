@@ -2,9 +2,10 @@ package configs
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"personal-growth/utils"
 	"reflect"
-	"time"
 
 	"github.com/spf13/viper"
 )
@@ -17,12 +18,13 @@ type Config struct {
 	DBPassword string `mapstructure:"DB_PASSWORD"`
 	DBName     string `mapstructure:"DB_NAME"`
 	// server
+	Env        string `mapstructure:"ENV"`
 	ServerPort string `mapstructure:"PORT"`
 	// authentication
-	TokenSecret        string        `mapstructure:"TOKEN_SECRET"`
-	TokenExpiredIn     time.Duration `mapstructure:"TOKEN_EXPIRED_IN"`
-	RefreshTokenMaxAge string        `mapstructure:"REFRESH_TOKEN_MAX_AGE"`
-	RefreshTokenSecret string        `mapstructure:"REFRESH_TOKEN_SECRET"`
+	TokenSecret        string `mapstructure:"TOKEN_SECRET"`
+	TokenExpiredIn     string `mapstructure:"TOKEN_EXPIRED_IN"`
+	RefreshTokenMaxAge string `mapstructure:"REFRESH_TOKEN_MAX_AGE"`
+	RefreshTokenSecret string `mapstructure:"REFRESH_TOKEN_SECRET"`
 	// email
 	EmailAddress  string `mapstructure:"EMAIL_ADDRESS"`
 	EmailPassword string `mapstructure:"EMAIL_PASSWORD"`
@@ -50,7 +52,12 @@ type Config struct {
 }
 
 func LoadConfig(path string) (config Config, err error) {
-	_, ferr := os.Stat("dev.env")
+	env := os.Getenv("ENV")
+	if utils.IsEmpty(&env) {
+		env = "dev"
+	}
+
+	_, ferr := os.Stat(fmt.Sprintf("%s.env", env))
 	if ferr != nil {
 		typ := reflect.TypeOf(Config{})
 
@@ -71,7 +78,7 @@ func LoadConfig(path string) (config Config, err error) {
 
 	viper.AddConfigPath(path)
 	viper.SetConfigType("env")
-	viper.SetConfigName("dev")
+	viper.SetConfigName(env)
 
 	viper.AutomaticEnv()
 

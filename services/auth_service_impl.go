@@ -58,12 +58,15 @@ func (n *AuthServiceImpl) Login(data requests.LoginRequest) (*responses.LoginRes
 	refreshExpiredIn, perr := utils.ParseDurationFromEnv(config.RefreshTokenMaxAge)
 	helpers.ErrorPanic(perr)
 
-	token, rf, err := utils.GenerateTokens(config.TokenExpiredIn, user.Id, config.TokenSecret, refreshExpiredIn, config.RefreshTokenSecret)
+	accessTokenExpiredIn, acerr := utils.ParseDurationFromEnv(config.TokenExpiredIn)
+	helpers.ErrorPanic(acerr)
+
+	token, rf, err := utils.GenerateTokens(accessTokenExpiredIn, user.Id, config.TokenSecret, refreshExpiredIn, config.RefreshTokenSecret)
 	helpers.ErrorPanic(err)
 
 	// delete old tokens
 	rdb := handlers.NewRedis()
-	rdb.SetVal(fmt.Sprintf("actoken_%s_%s", user.Id, rf[len(rf)-6:]), token, config.TokenExpiredIn)
+	rdb.SetVal(fmt.Sprintf("actoken_%s_%s", user.Id, rf[len(rf)-6:]), token, accessTokenExpiredIn)
 	rdb.SetVal(fmt.Sprintf("rftoken_%s_%s", user.Id, rf[len(rf)-6:]), rf, refreshExpiredIn)
 
 	return &responses.LoginResponse{
@@ -92,14 +95,17 @@ func (n *AuthServiceImpl) RefreshAccessToken(refreshToken string) (string, *fibe
 		return "", fiber.NewError(fiber.StatusUnauthorized, "Invalid or expired refresh token")
 	}
 
+	accessTokenExpiredIn, acerr := utils.ParseDurationFromEnv(config.TokenExpiredIn)
+	helpers.ErrorPanic(acerr)
+
 	// Tạo access token mới
-	newAccessToken, err := utils.GenerateAccessToken(config.TokenExpiredIn, userID, config.TokenSecret)
+	newAccessToken, err := utils.GenerateAccessToken(accessTokenExpiredIn, userID, config.TokenSecret)
 	if err != nil {
 		return "", fiber.NewError(fiber.StatusInternalServerError, "Could not create access token")
 	}
 
 	// Lưu access token mới vào Redis
-	rdb.SetVal(fmt.Sprintf("actoken_%s_%s", userID, refreshToken[len(refreshToken)-6:]), newAccessToken, config.TokenExpiredIn)
+	rdb.SetVal(fmt.Sprintf("actoken_%s_%s", userID, refreshToken[len(refreshToken)-6:]), newAccessToken, accessTokenExpiredIn)
 
 	return newAccessToken, nil
 }
