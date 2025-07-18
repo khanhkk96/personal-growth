@@ -8,8 +8,10 @@ import (
 	"personal-growth/docs"
 	"personal-growth/handlers"
 	"personal-growth/middlewares"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
@@ -42,10 +44,24 @@ func main() {
 	// Seed admin acount if it doesn't exist
 	handlers.InitAdmin(db)
 
+	corsConfig := cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: strings.Join([]string{
+			fiber.MethodGet,
+			fiber.MethodPost,
+			fiber.MethodHead,
+			fiber.MethodPut,
+			fiber.MethodDelete,
+			fiber.MethodPatch,
+		}, ","),
+		// AllowCredentials: true,
+	})
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middlewares.ErrorHandler,
 		BodyLimit:    20 * 1024 * 1024, // limit 20 MB
+
 	})
+	app.Use(corsConfig)
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Static("/uploads", "./uploads")
