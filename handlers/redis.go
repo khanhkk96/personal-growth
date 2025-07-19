@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -16,8 +17,32 @@ type RedisClient struct {
 	Client *redis.Client
 }
 
+var redisClient *RedisClient
+var once sync.Once
+
+func GetInstance() *RedisClient {
+	once.Do(func() {
+		client := redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf("%s:%s", viper.GetString("REDIS_HOST"), viper.GetString("REDIS_PORT")),
+			Password: viper.GetString("REDIS_PASSWORD"),
+			DB:       0,
+		})
+		redisClient = &RedisClient{
+			Client: client,
+		}
+
+		// Test the connection
+		pong, err := client.Ping(ctx).Result()
+		if err != nil {
+			log.Fatalf("Could not connect to Redis: %v", err)
+		}
+		fmt.Println(pong) // Should print "PONG"
+	})
+	return redisClient
+}
+
 func NewRedis() *RedisClient {
-	fmt.Printf("Connecting to Redis at %s:%s ::: password:%s\n", viper.GetString("REDIS_HOST"), viper.GetString("REDIS_PORT"), viper.GetString("REDIS_PASSWORD"))
+	// fmt.Printf("Connecting to Redis at %s:%s ::: password:%s\n", viper.GetString("REDIS_HOST"), viper.GetString("REDIS_PORT"), viper.GetString("REDIS_PASSWORD"))
 	// Initialize Redis client
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", viper.GetString("REDIS_HOST"), viper.GetString("REDIS_PORT")),

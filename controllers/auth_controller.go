@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"personal-growth/data/requests"
 	"personal-growth/data/responses"
 	"personal-growth/db/models"
@@ -41,6 +42,9 @@ func (controller *AuthController) Login(ctx *fiber.Ctx) error {
 	if lerr != nil {
 		return ctx.Status(lerr.Code).JSON(lerr.Message)
 	}
+
+	fmt.Printf("access token: %v", tokens.AccessToken)
+	fmt.Printf("\nrefresh token: %v", tokens.RefreshToken)
 
 	// Set new refresh token in secure HttpOnly cookie
 	refreshExpiredIn, _ := utils.ParseDurationFromEnv(viper.GetString("REFRESH_TOKEN_MAX_AGE"))
