@@ -45,7 +45,7 @@ func main() {
 	handlers.InitAdmin(db)
 
 	corsConfig := cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins: "http://localhost:5173,https://77f7b6899ebc.ngrok-free.app",
 		AllowMethods: strings.Join([]string{
 			fiber.MethodGet,
 			fiber.MethodPost,
@@ -54,7 +54,7 @@ func main() {
 			fiber.MethodDelete,
 			fiber.MethodPatch,
 		}, ","),
-		// AllowCredentials: true,
+		AllowCredentials: true,
 	})
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middlewares.ErrorHandler,

@@ -43,8 +43,8 @@ func (controller *AuthController) Login(ctx *fiber.Ctx) error {
 		return ctx.Status(lerr.Code).JSON(lerr.Message)
 	}
 
-	fmt.Printf("access token: %v", tokens.AccessToken)
-	fmt.Printf("\nrefresh token: %v", tokens.RefreshToken)
+	fmt.Printf("access token: %v\n", tokens.AccessToken)
+	fmt.Printf("\nrefresh token: %v\n", tokens.RefreshToken)
 
 	// Set new refresh token in secure HttpOnly cookie
 	refreshExpiredIn, _ := utils.ParseDurationFromEnv(viper.GetString("REFRESH_TOKEN_MAX_AGE"))
@@ -63,7 +63,7 @@ func (controller *AuthController) Login(ctx *fiber.Ctx) error {
 		Message: "Login successfully",
 		Data:    tokens.AccessToken,
 	}
-	return ctx.Status(fiber.StatusCreated).JSON(webResponse)
+	return ctx.Status(fiber.StatusOK).JSON(webResponse)
 }
 
 // @Summary      Get new access token
