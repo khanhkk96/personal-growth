@@ -79,5 +79,5 @@ func main() {
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
 	// launch server
-	log.Fatal(app.Listen(fmt.Sprintf(":%s", loadConfig.ServerPort)))
+	log.Fatal(app.Listen(fmt.Sprintf(":%s", loadedConfigs.ServerPort)))
 }
