@@ -8,12 +8,14 @@ import (
 	"personal-growth/docs"
 	"personal-growth/handlers"
 	"personal-growth/middlewares"
+	"personal-growth/utils"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/spf13/viper"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
@@ -23,13 +25,13 @@ import (
 // @defaultModelRendering model
 func main() {
 	fmt.Print("Running service ...")
-	loadConfig, err := configs.LoadConfig(".")
+	loadedConfigs, err := configs.LoadConfig(".")
 	if err != nil {
 		log.Fatal("Could not load environment variables", err)
 	}
 
 	//Database
-	db := configs.ConnectDB(&loadConfig)
+	db := configs.ConnectDB(&loadedConfigs)
 
 	// db.AutoMigrate(
 	// 	&models.User{},
@@ -44,8 +46,9 @@ func main() {
 	// Seed admin acount if it doesn't exist
 	handlers.InitAdmin(db)
 
+	origins := viper.GetString("CORS_ORIGINS")
 	corsConfig := cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173,https://77f7b6899ebc.ngrok-free.app",
+		AllowOrigins: utils.Coalesce(&origins, "http://localhost:3000,http://localhost:5173"),
 		AllowMethods: strings.Join([]string{
 			fiber.MethodGet,
 			fiber.MethodPost,

@@ -22,3 +22,11 @@ func ParseDurationFromEnv(raw string) (time.Duration, error) {
 	// fallback: parse bình thường (ví dụ: "10h", "30m")
 	return time.ParseDuration(raw)
 }
+
+func Coalesce(str *string, fallback string) string {
+	if str != nil {
+		return *str
+	}
+
+	return fallback
+}
