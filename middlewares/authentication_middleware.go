@@ -35,6 +35,7 @@ func Authenticate() fiber.Handler {
 
 		rdb := handlers.NewRedis()
 		rfToken := c.Cookies("refresh_token")
+		fmt.Printf("rf in cookie:: %s", rfToken)
 		val, _ := rdb.GetVal(fmt.Sprintf("actoken_%s_%s", claims["sub"], rfToken[len(rfToken)-6:]))
 
 		if val != tokenStr {

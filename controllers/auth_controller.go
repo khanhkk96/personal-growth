@@ -53,7 +53,7 @@ func (controller *AuthController) Login(ctx *fiber.Ctx) error {
 		Value:    tokens.RefreshToken,
 		HTTPOnly: true,
 		Secure:   true,
-		SameSite: "Strict",
+		SameSite: "None",
 		Expires:  time.Now().Add(refreshExpiredIn),
 	})
 
