@@ -132,6 +132,7 @@ func (n *AuthServiceImpl) Register(data requests.RegisterRequest) (*models.User,
 	user.Otp = sql.NullString{String: otp, Valid: true}
 	user.OtpExpiredAt = sql.NullTime{Time: time.Now().Add(5 * time.Minute), Valid: true}
 	user.OtpCounter++
+	user.IsActive = true //ignore approvement
 
 	cerr := n.repository.Create(user)
 	if cerr != nil {
